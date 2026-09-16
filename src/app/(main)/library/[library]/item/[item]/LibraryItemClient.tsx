@@ -27,6 +27,7 @@ import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
 import LibraryItemActionButtons from './LibraryItemActionButtons'
 import LibraryItemCover from './LibraryItemCover'
 import LibraryItemDetails from './LibraryItemDetails'
+import ListeningLog from '@/components/widgets/ListeningLog'
 import LibraryItemProgressPanel from './LibraryItemProgressPanel'
 import { useLibraryItemPagePlay } from './useLibraryItemPagePlay'
 
@@ -215,6 +216,8 @@ export default function LibraryItemClient({ libraryItem: initialLibraryItem }: L
                   dateFormat={serverSettings?.dateFormat ?? 'MM/dd/yyyy'}
                 />
               )}
+
+              <ListeningLog libraryItemId={libraryItem.id} dateFormat={serverSettings?.dateFormat ?? 'MM/dd/yyyy'} />
 
               <LibraryItemActionButtons
                 libraryItem={libraryItem}

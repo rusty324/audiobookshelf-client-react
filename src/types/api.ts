@@ -1652,6 +1652,26 @@ export interface DeviceInfo {
 /**
  * Playback session response from server
  */
+/** One recorded playback action, used to build the per-item listening log. */
+export interface PlaybackEvent {
+  id: string
+  eventType: 'play' | 'pause' | 'seek' | 'chapterSkip' | 'finished'
+  currentTime: number
+  fromTime: number | null
+  chapterTitle: string | null
+  chapterIndex: number | null
+  source: string
+  createdAt: string
+}
+
+export interface PlaybackEventsPage {
+  total: number
+  numPages: number
+  page: number
+  itemsPerPage: number
+  events: PlaybackEvent[]
+}
+
 export interface PlaybackSession {
   id: string
   userId: string
