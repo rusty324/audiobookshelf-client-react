@@ -40,6 +40,7 @@ export default function PlayerModals({ controls }: PlayerModalsProps) {
 
   const { sleepTimerSet, sleepTimerRemaining, sleepTimerType, setSleepTimer, cancelSleepTimer, incrementSleepTimer, decrementSleepTimer } = sleepTimer
   const { settings } = playerHandler.state
+  const { updateSettings } = playerHandler.controls
   const libraryItemId = streamLibraryItem.id
 
   return (
@@ -85,6 +86,8 @@ export default function PlayerModals({ controls }: PlayerModalsProps) {
         }}
         onIncrement={incrementSleepTimer}
         onDecrement={decrementSleepTimer}
+        autoRewindAmount={settings.sleepTimerAutoRewindAmount}
+        onAutoRewindAmountChange={(value) => updateSettings({ sleepTimerAutoRewindAmount: value })}
       />
       <QueueItemsModal isOpen={isQueueModalOpen} zIndexClass={playerOverlayZIndex} onClose={() => setIsQueueModalOpen(false)} />
     </>

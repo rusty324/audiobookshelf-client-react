@@ -9,6 +9,7 @@ import { useSleepTimer } from '@/hooks/useSleepTimer'
 import { useTypeSafeTranslations } from '@/hooks/useTypeSafeTranslations'
 import { LibraryItem, PlayerState } from '@/types/api'
 import { useCallback, useMemo, useState } from 'react'
+import { getAutoRewindTarget } from '@/lib/player/sleepTimerUtils'
 
 export function usePlayerControlsState(playerHandler: PlayerHandler, streamLibraryItem: LibraryItem) {
   const t = useTypeSafeTranslations()
@@ -35,8 +36,19 @@ export function usePlayerControlsState(playerHandler: PlayerHandler, streamLibra
   const { nextChapter, previousChapter, currentChapter, playerState, settings } = playerHandler.state
 
   const handleSleepTimerEnd = useCallback(() => {
+    // The timer usually expires after you have already drifted off, so back up
+    // a little rather than resuming exactly where playback stopped. Runs after
+    // useSleepTimer has paused the player.
+    const rewindAmount = settings.sleepTimerAutoRewindAmount
+    const rewindTarget = getAutoRewindTarget(getCurrentTime(), rewindAmount)
+    if (rewindTarget !== null) {
+      seek(rewindTarget)
+      showToast(t('ToastSleepTimerDoneRewound', { seconds: rewindAmount }), { type: 'info' })
+      return
+    }
+
     showToast(t('ToastSleepTimerDone'), { type: 'info' })
-  }, [showToast, t])
+  }, [getCurrentTime, seek, settings.sleepTimerAutoRewindAmount, showToast, t])
 
   const sleepTimer = useSleepTimer({
     pause,
