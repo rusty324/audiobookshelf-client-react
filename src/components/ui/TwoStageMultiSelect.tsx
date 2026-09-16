@@ -19,6 +19,8 @@ interface TwoStageMultiSelectProps {
   onItemAdded?: (item: MultiSelectItem<TwoStageMultiSelectContent>) => void
   onItemRemoved?: (item: MultiSelectItem<TwoStageMultiSelectContent>) => void
   onItemEdited?: (item: MultiSelectItem<TwoStageMultiSelectContent>, index: number) => void
+  /** Called with the source and destination indices when an item is reordered. */
+  onItemMoved?: (fromIndex: number, toIndex: number) => void
 
   // Validation
   onValidate?: (content: TwoStageMultiSelectContent) => string | null
@@ -27,6 +29,8 @@ interface TwoStageMultiSelectProps {
 
   // Optional props
   disabled?: boolean
+  /** Enable reordering of selected items via per-pill move up/down buttons. */
+  orderable?: boolean
 }
 
 export default function TwoStageMultiSelect({
@@ -37,10 +41,12 @@ export default function TwoStageMultiSelect({
   onItemAdded,
   onItemRemoved,
   onItemEdited,
+  onItemMoved,
   onValidate,
   onValidationError,
   onDuplicateError,
-  disabled
+  disabled,
+  orderable
 }: TwoStageMultiSelectProps) {
   const [editingPillIndex, setEditingPillIndex] = useState<number | null>(null)
   const [isEditingNewItem, setIsEditingNewItem] = useState(false)
@@ -114,6 +120,14 @@ export default function TwoStageMultiSelect({
     [onItemEdited, onItemAdded, isEditingNewItem]
   )
 
+  const handleItemMoved = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      setIsEditingNewItem(false)
+      onItemMoved?.(fromIndex, toIndex)
+    },
+    [onItemMoved]
+  )
+
   const handleEditingPillIndexChange = useCallback((index: number | null) => {
     setEditingPillIndex(index)
     setIsEditingNewItem(false)
@@ -126,6 +140,8 @@ export default function TwoStageMultiSelect({
       onItemAdded={handleItemAdded}
       onItemRemoved={handleItemRemoved}
       onItemEdited={handleItemEdited}
+      onItemMoved={handleItemMoved}
+      orderable={orderable}
       label={label}
       showEdit={true}
       editingPillIndex={editingPillIndex}
