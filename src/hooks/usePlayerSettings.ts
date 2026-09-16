@@ -13,6 +13,8 @@ export interface PlayerSettings {
   playbackRateIncrementDecrement: 0.1 | 0.05
   /** Current volume level (0-1) */
   volume: number
+  /** Seconds to rewind when a sleep timer expires. 0 disables the rewind. */
+  sleepTimerAutoRewindAmount: number
 }
 
 export interface UsePlayerSettingsReturn {
@@ -46,7 +48,8 @@ const DEFAULT_SETTINGS: PlayerSettings = {
   jumpBackwardAmount: 10,
   playbackRate: 1.0,
   playbackRateIncrementDecrement: 0.1,
-  volume: 0.5
+  volume: 0.5,
+  sleepTimerAutoRewindAmount: 60
 }
 
 // Playback rate bounds

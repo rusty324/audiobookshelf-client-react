@@ -3,12 +3,14 @@
 import Modal from '@/components/modals/Modal'
 import ModalOuterContent from '@/components/modals/ModalOuterContent'
 import Btn from '@/components/ui/Btn'
+import Dropdown from '@/components/ui/Dropdown'
 import IconBtn from '@/components/ui/IconBtn'
 import TextInput from '@/components/ui/TextInput'
 import type { SleepTimerTime } from '@/hooks/useSleepTimer'
 import { useTypeSafeTranslations } from '@/hooks/useTypeSafeTranslations'
 import { secondsToTimestamp } from '@/lib/datefns'
 import { SleepTimerTypes, type SleepTimerType } from '@/lib/player/constants'
+import { AUTO_REWIND_AMOUNTS } from '@/lib/player/sleepTimerUtils'
 import type { TypeSafeTranslations } from '@/types/translations'
 import { useMemo, useState } from 'react'
 
@@ -37,6 +39,9 @@ interface SleepTimerModalProps {
   onCancel: () => void
   onIncrement: (amount: number) => void
   onDecrement: (amount: number) => void
+  /** Seconds to rewind when the timer expires (0 disables) */
+  autoRewindAmount: number
+  onAutoRewindAmountChange: (value: number) => void
 }
 
 function getPresetShortLabel(seconds: number, timerType: SleepTimerType, t: TypeSafeTranslations): string {
@@ -61,10 +66,17 @@ export default function SleepTimerModal({
   onSet,
   onCancel,
   onIncrement,
-  onDecrement
+  onDecrement,
+  autoRewindAmount,
+  onAutoRewindAmountChange
 }: SleepTimerModalProps) {
   const t = useTypeSafeTranslations()
   const [customTime, setCustomTime] = useState('')
+
+  const autoRewindOptions = useMemo(
+    () => AUTO_REWIND_AMOUNTS.map((seconds) => ({ text: seconds === 0 ? t('LabelOff') : t('LabelTimeDurationXSeconds', { 0: seconds }), value: seconds })),
+    [t]
+  )
 
   const thirtyMinutesLabel = useMemo(() => t('LabelDurationCompactMinutes', { count: 30 }), [t])
   const fiveMinutesLabel = useMemo(() => t('LabelDurationCompactMinutes', { count: 5 }), [t])
@@ -268,6 +280,17 @@ export default function SleepTimerModal({
             </form>
           </>
         )}
+
+        <div className="border-t border-white/10 px-4 py-3">
+          <Dropdown
+            value={autoRewindAmount}
+            label={t('LabelSleepTimerAutoRewind')}
+            items={autoRewindOptions}
+            size="small"
+            onChange={(value) => onAutoRewindAmountChange(Number(value) || 0)}
+          />
+          <p className="text-foreground/60 pt-1 text-xs">{t('LabelSleepTimerAutoRewindHelp')}</p>
+        </div>
       </div>
     </Modal>
   )
