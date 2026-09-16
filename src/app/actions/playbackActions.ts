@@ -1,7 +1,7 @@
 'use server'
 
 import * as api from '@/lib/api'
-import type { PlaybackSession, StartSessionPayload } from '@/types/api'
+import type { PlaybackEventsPage, PlaybackSession, StartSessionPayload } from '@/types/api'
 import { headers } from 'next/headers'
 
 interface SessionSyncData {
@@ -76,4 +76,16 @@ export async function updateBookmarkAction(libraryItemId: string, payload: { tim
 
 export async function removeBookmarkAction(libraryItemId: string, time: number) {
   return api.removeBookmark(libraryItemId, time)
+}
+
+/**
+ * Fetch a page of the listening log for a library item.
+ *
+ * @param libraryItemId
+ * @param page - zero-based page index
+ * @param itemsPerPage
+ */
+export async function fetchPlaybackEventsAction(libraryItemId: string, page = 0, itemsPerPage = 25): Promise<PlaybackEventsPage> {
+  const query = new URLSearchParams({ page: String(page), itemsPerPage: String(itemsPerPage) })
+  return api.apiRequest<PlaybackEventsPage>(`/api/me/item/${libraryItemId}/playback-events?${query.toString()}`)
 }
