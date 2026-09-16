@@ -1652,6 +1652,15 @@ export interface DeviceInfo {
 /**
  * Playback session response from server
  */
+/** A playback action submitted by the client for the listening log. */
+export interface PlaybackEventSubmission {
+  eventType: 'play' | 'pause' | 'seek' | 'chapterSkip'
+  currentTime: number
+  fromTime?: number | null
+  /** Epoch milliseconds when the action happened */
+  createdAt: number
+}
+
 /** One recorded playback action, used to build the per-item listening log. */
 export interface PlaybackEvent {
   id: string
