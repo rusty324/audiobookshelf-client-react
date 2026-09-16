@@ -1,7 +1,7 @@
 'use server'
 
 import * as api from '@/lib/api'
-import type { PlaybackEventsPage, PlaybackSession, StartSessionPayload } from '@/types/api'
+import type { PlaybackEventSubmission, PlaybackEventsPage, PlaybackSession, StartSessionPayload } from '@/types/api'
 import { headers } from 'next/headers'
 
 interface SessionSyncData {
@@ -88,4 +88,21 @@ export async function removeBookmarkAction(libraryItemId: string, time: number) 
 export async function fetchPlaybackEventsAction(libraryItemId: string, page = 0, itemsPerPage = 25): Promise<PlaybackEventsPage> {
   const query = new URLSearchParams({ page: String(page), itemsPerPage: String(itemsPerPage) })
   return api.apiRequest<PlaybackEventsPage>(`/api/me/item/${libraryItemId}/playback-events?${query.toString()}`)
+}
+
+/**
+ * Submit a batch of playback events for the listening log.
+ *
+ * The server validates the event types, clamps times to the item duration and
+ * re-derives whether a jump was a seek or a chapter skip, so the client does
+ * not need to be careful beyond sending what it observed.
+ *
+ * @param sessionId - the open playback session the events belong to
+ * @param events - buffered events, oldest first
+ */
+export async function recordPlaybackEventsAction(sessionId: string, events: PlaybackEventSubmission[]): Promise<void> {
+  await api.apiRequest(`/api/session/${sessionId}/events`, {
+    method: 'POST',
+    body: JSON.stringify({ events })
+  })
 }

@@ -1,6 +1,7 @@
 import { subscribeCastSessionActive } from '@/contexts/ChromecastContext'
 import { useSocketEvent } from '@/contexts/SocketContext'
 import { usePlaybackSession, type StartSessionOptions } from '@/hooks/usePlaybackSession'
+import { usePlaybackEventLog } from './usePlaybackEventLog'
 import { usePlayerSettings, type PlayerSettings, type UsePlayerSettingsReturn } from '@/hooks/usePlayerSettings'
 import { mergeLibraryItemUpdate } from '@/lib/libraryItemUpdatedUtils'
 import { AudioTrack } from '@/lib/player/AudioTrack'
@@ -275,6 +276,9 @@ export function usePlayerHandler(options: UsePlayerHandlerOptions = {}): UsePlay
     onError: handleSessionError
   })
 
+  // Listening log: buffered playback actions for the per-item history
+  const { queueEvent, flushEvents, startFlushInterval, stopFlushInterval, resetEvents } = usePlaybackEventLog({ getSessionId })
+
   const syncProgressRef = useRef(syncProgress)
   syncProgressRef.current = syncProgress
 
@@ -367,6 +371,12 @@ export function usePlayerHandler(options: UsePlayerHandlerOptions = {}): UsePlay
   const setupPlayerListeners = useCallback(
     (player: PlayerBackend) => {
       player.on('stateChange', (state) => {
+        const previousState = playerStateRef.current
+        const stateChanged = previousState !== state
+        // setPlayerState is batched, so keep the ref authoritative here: two
+        // state changes in quick succession must not compare against a stale
+        // previous value when deciding whether to log a transition.
+        playerStateRef.current = state
         setPlayerState(state)
 
         if (state === PlayerState.PLAYING) {
@@ -375,8 +385,21 @@ export function usePlayerHandler(options: UsePlayerHandlerOptions = {}): UsePlay
           // Apply playback rate and volume from refs to avoid stale closures
           player.setPlaybackRate(playbackRateRef.current)
           player.setVolume(volumeRef.current)
+
+          // Only log a real transition into playing, so intermediate states do
+          // not fill the listening log with entries the user never caused.
+          if (stateChanged) {
+            queueEvent('play', player.getCurrentTime())
+            startFlushInterval()
+          }
         } else {
           stopSyncInterval()
+
+          if (stateChanged && previousState === PlayerState.PLAYING) {
+            queueEvent('pause', player.getCurrentTime())
+            stopFlushInterval()
+            flushEvents()
+          }
         }
 
         // Update current time on state changes
@@ -421,7 +444,7 @@ export function usePlayerHandler(options: UsePlayerHandlerOptions = {}): UsePlay
         })()
       })
     },
-    [startSyncInterval, stopSyncInterval, setPlaybackTime]
+    [startSyncInterval, stopSyncInterval, setPlaybackTime, queueEvent, flushEvents, startFlushInterval, stopFlushInterval]
   )
 
   // Single progress poll during playback
@@ -541,10 +564,18 @@ export function usePlayerHandler(options: UsePlayerHandlerOptions = {}): UsePlay
     (time: number) => {
       if (!playerRef.current) return
       const isPlaying = playerStateRef.current === PlayerState.PLAYING
+
+      // Read the origin before seeking: the seek may resolve asynchronously, so
+      // afterwards getCurrentTime() can still report the old position.
+      const fromTime = playerRef.current.getCurrentTime()
+
       void Promise.resolve(playerRef.current.seek(time, isPlaying))
       setPlaybackTime(playerRef.current.getCurrentTime())
+
+      // Always sent as a seek; the server decides whether it was a chapter skip.
+      queueEvent('seek', time, fromTime)
     },
-    [setPlaybackTime]
+    [queueEvent, setPlaybackTime]
   )
 
   const jumpForward = useCallback(() => {
@@ -596,7 +627,10 @@ export function usePlayerHandler(options: UsePlayerHandlerOptions = {}): UsePlay
 
   const closePlayer = useCallback(async () => {
     stopSyncInterval()
+    // Send anything buffered while the session is still open
+    flushEvents()
     await closeSession(() => playerRef.current?.getCurrentTime() ?? 0)
+    resetEvents()
 
     // Destroy player
     if (playerRef.current) {
@@ -625,7 +659,7 @@ export function usePlayerHandler(options: UsePlayerHandlerOptions = {}): UsePlay
     libraryItemRef.current = null
     episodeIdRef.current = null
     playerKindRef.current = 'local'
-  }, [closeSession, stopSyncInterval])
+  }, [closeSession, stopSyncInterval, flushEvents, resetEvents])
 
   // Keep the saved chapter-track preference, but treat it as off when this item has no chapters
   const effectiveSettings = useMemo(() => {
