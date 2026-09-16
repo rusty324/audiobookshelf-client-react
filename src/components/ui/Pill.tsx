@@ -11,6 +11,12 @@ interface PillProps<T> {
   disabled: boolean
   showEditButton: boolean
   isEditing?: boolean
+  /** Show the reorder (move up/down) buttons. Rendered opposite the edit/remove cluster. */
+  showMoveButtons?: boolean
+  canMoveUp?: boolean
+  canMoveDown?: boolean
+  onMoveUp?: () => void
+  onMoveDown?: () => void
   getEditableText?: (item: T) => string
   getReadOnlyPrefix?: (item: T) => string
   getFullText?: (item: T) => string
@@ -31,6 +37,11 @@ export const Pill = <T,>({
   disabled,
   showEditButton,
   isEditing = false,
+  showMoveButtons = false,
+  canMoveUp = false,
+  canMoveDown = false,
+  onMoveUp,
+  onMoveDown,
   getEditableText,
   getReadOnlyPrefix,
   getFullText,
@@ -304,7 +315,7 @@ export const Pill = <T,>({
         !disabled && isFocused ? 'z-10 ring' : '',
         hasValidationError && 'ring-error ring-2'
       )}
-      style={{ minWidth: showEditButton ? 44 : 22 }}
+      style={{ minWidth: (showEditButton ? 44 : 22) + (showMoveButtons ? 26 : 0) }}
       tabIndex={-1}
       onMouseDown={(e) => e.preventDefault()}
       onClick={(e) => {
@@ -313,6 +324,42 @@ export const Pill = <T,>({
         onClick()
       }}
     >
+      {!disabled && showMoveButtons && (
+        <div
+          className="absolute -start-1 top-0 z-20 flex -translate-y-1/2 items-center gap-0.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          role="group"
+          aria-label={t('LabelReorderActions')}
+        >
+          <button
+            type="button"
+            aria-label={t('ButtonMoveUp')}
+            disabled={!canMoveUp}
+            className="material-symbols bg-bg-alt text-foreground hover:text-success focus:text-success disabled:text-disabled flex h-3 w-3 cursor-pointer items-center justify-center rounded-full text-sm disabled:cursor-not-allowed"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.stopPropagation()
+              onMoveUp?.()
+            }}
+            tabIndex={-1}
+          >
+            keyboard_arrow_up
+          </button>
+          <button
+            type="button"
+            aria-label={t('ButtonMoveDown')}
+            disabled={!canMoveDown}
+            className="material-symbols bg-bg-alt text-foreground hover:text-success focus:text-success disabled:text-disabled flex h-3 w-3 cursor-pointer items-center justify-center rounded-full text-sm disabled:cursor-not-allowed"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.stopPropagation()
+              onMoveDown?.()
+            }}
+            tabIndex={-1}
+          >
+            keyboard_arrow_down
+          </button>
+        </div>
+      )}
       {!disabled && (
         <div className="absolute -end-1 top-0 z-20 flex -translate-y-1/2 items-center gap-0.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
           {showEditButton && (

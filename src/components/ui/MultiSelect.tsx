@@ -25,6 +25,8 @@ export interface MultiSelectProps<T = string> {
   allowNew?: boolean
   menuDisabled?: boolean
   editingPillIndex?: number | null
+  /** Enable reordering of selected items via per-pill move up/down buttons. */
+  orderable?: boolean
 
   // Pill content introspection callbacks
   getEditableText?: (content: T) => string
@@ -46,6 +48,8 @@ export interface MultiSelectProps<T = string> {
   onItemEdited?: (item: MultiSelectItem<T>, index: number) => void
   onItemAdded?: (item: MultiSelectItem<T>) => void
   onItemRemoved?: (item: MultiSelectItem<T>) => void
+  /** Called with the source and destination indices when a pill is moved. */
+  onItemMoved?: (fromIndex: number, toIndex: number) => void
   onInputChange?: (value: string) => void
   onEditingPillIndexChange?: (index: number | null) => void
   onEditDone?: (cancelled?: boolean) => void
@@ -62,6 +66,7 @@ export function MultiSelect<T = string>({
   allowNew = true,
   menuDisabled = false,
   editingPillIndex: controlledEditingPillIndex,
+  orderable = false,
   getEditableText,
   getReadOnlyPrefix,
   getFullText,
@@ -73,6 +78,7 @@ export function MultiSelect<T = string>({
   onItemEdited,
   onItemAdded,
   onItemRemoved,
+  onItemMoved,
   onInputChange,
   onEditingPillIndexChange,
   onEditDone
@@ -207,6 +213,14 @@ export function MultiSelect<T = string>({
     if (itemToRemove) {
       onItemRemoved?.(itemToRemove)
     }
+  }
+
+  // Reordering is only meaningful with more than one item to order.
+  const canReorder = orderable && !disabled && selectedItems.length > 1
+
+  const moveItem = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= selectedItems.length || fromIndex === toIndex) return
+    onItemMoved?.(fromIndex, toIndex)
   }
 
   const validate = (content: T): boolean => {
@@ -596,6 +610,11 @@ export function MultiSelect<T = string>({
                 isEditing={editingPillIndex === idx}
                 disabled={disabled}
                 showEditButton={showEdit}
+                showMoveButtons={canReorder}
+                canMoveUp={idx > 0}
+                canMoveDown={idx < selectedItems.length - 1}
+                onMoveUp={() => moveItem(idx, idx - 1)}
+                onMoveDown={() => moveItem(idx, idx + 1)}
                 onClick={() => focusPill(idx)}
                 onEditButtonClick={() => setEditingPillIndex(idx)}
                 onEdit={(editedPillItem) => handlePillEdit(editedPillItem, idx)}
