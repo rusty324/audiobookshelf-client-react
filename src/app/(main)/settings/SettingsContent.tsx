@@ -11,6 +11,13 @@ interface AddButtonProps {
   onClick: () => void
 }
 
+/** An optional extra header action, rendered before the add button. */
+interface SecondaryButtonProps {
+  label: string
+  onClick: () => void
+  disabled?: boolean
+}
+
 export default function SettingsContent(props: {
   children: React.ReactNode
   title: string
@@ -18,6 +25,7 @@ export default function SettingsContent(props: {
   moreInfoUrl?: string
   backLink?: string
   addButton?: AddButtonProps
+  secondaryButton?: SecondaryButtonProps
   entityCount?: number
   className?: string
 }) {
@@ -38,6 +46,11 @@ export default function SettingsContent(props: {
           )}
           {props.moreInfoUrl && <MoreInfoIcon moreInfoUrl={props.moreInfoUrl} />}
           <div className="grow" />
+          {props.secondaryButton && (
+            <Btn size="small" disabled={props.secondaryButton.disabled} onClick={props.secondaryButton.onClick}>
+              {props.secondaryButton.label}
+            </Btn>
+          )}
           {props.addButton && (
             <Btn size="small" onClick={props.addButton.onClick}>
               {props.addButton.label}
