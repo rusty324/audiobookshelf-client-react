@@ -76,6 +76,8 @@ export interface ServerStatus {
 
 // Server settings interface
 export interface ServerSettings {
+  /** Whether a Hardcover API token is configured. The token itself is never sent to the client. */
+  hardcoverEnabled?: boolean
   // Scanner settings
   scannerParseSubtitle: boolean
   scannerFindCovers: boolean
@@ -1949,4 +1951,54 @@ export interface LibraryStatsResponse {
   totalSize: number
   totalDuration: number
   numAudioTracks: number
+}
+
+/** A book that belongs to a series but is not in the library. */
+export interface SeriesPlaceholder {
+  id: string
+  seriesId: string
+  title: string
+  subtitle: string | null
+  sequence: string
+  authorName: string | null
+  source: 'manual' | 'hardcover'
+  createdAt: string
+}
+
+export interface SeriesPlaceholdersResponse {
+  placeholders: SeriesPlaceholder[]
+  /** Includes entries the library now covers, which are filtered out of `placeholders`. */
+  total: number
+}
+
+/** A proposed placeholder from Hardcover, pending confirmation. */
+export interface SeriesPlaceholderSuggestion {
+  title: string
+  subtitle: string | null
+  sequence: string
+  authorName: string | null
+  releaseYear: number | null
+  source: 'hardcover'
+  sourceId: string | null
+}
+
+export interface SeriesPlaceholderSuggestionsResponse {
+  suggestions: SeriesPlaceholderSuggestion[]
+  matchedSeriesName: string
+  /** Whether Hardcover lists the series as finished, so the list can be trusted as complete. */
+  isCompleted: boolean
+  totalInSeries: number
+}
+
+export interface SeriesPlaceholderInput {
+  title: string
+  subtitle?: string | null
+  sequence?: string
+  authorName?: string | null
+  source?: 'manual' | 'hardcover'
+}
+
+export interface SeriesPlaceholderBulkResult {
+  added: number
+  skipped: number
 }

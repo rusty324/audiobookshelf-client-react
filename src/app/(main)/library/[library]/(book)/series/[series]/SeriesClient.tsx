@@ -4,6 +4,7 @@ import BookshelfClient from '@/app/(main)/library/[library]/[entityType]/Bookshe
 import { markSeriesFinishedAction, readdSeriesToContinueListeningAction } from '@/app/actions/mediaActions'
 import RssFeedOpenCloseModal from '@/components/modals/RssFeedOpenCloseModal'
 import ConfirmDialog from '@/components/widgets/ConfirmDialog'
+import SeriesPlaceholders from '@/components/widgets/SeriesPlaceholders'
 import { useLibrary } from '@/contexts/LibraryContext'
 import { useSocketEvent } from '@/contexts/SocketContext'
 import { useGlobalToast } from '@/contexts/ToastContext'
@@ -212,7 +213,16 @@ export default function SeriesClient({ series: seriesProp }: SeriesClientProps) 
 
   return (
     <div className="h-full w-full">
-      <BookshelfClient entityType="items" queryOverride={seriesBooksQuery} registerToolbar={false} />
+      {/* The placeholder panel goes in the bookshelf's footer slot rather than
+          after it: the bookshelf owns the scroll container, and its shelves are
+          virtualized and absolutely positioned, so entries cannot be
+          interleaved with the books. */}
+      <BookshelfClient
+        entityType="items"
+        queryOverride={seriesBooksQuery}
+        registerToolbar={false}
+        footer={<SeriesPlaceholders seriesId={series.id} onPromoted={() => router.refresh()} />}
+      />
 
       <RssFeedOpenCloseModal
         isOpen={rssFeedModalOpen}

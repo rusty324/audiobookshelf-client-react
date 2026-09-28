@@ -15,7 +15,7 @@ import { isLibraryIssuesPage } from '@/hooks/useLibraryRouteGuard'
 import { buildMediaItemProgressMap } from '@/lib/mediaProgress'
 import { BookshelfEntity, BookshelfView, EntityType } from '@/types/api'
 import { usePathname } from 'next/navigation'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import LibraryEmptyState from '../LibraryEmptyState'
 import { ENTITY_CONFIGS } from './entity-config'
 
@@ -24,9 +24,11 @@ interface BookshelfClientProps {
   queryOverride?: string
   /** When false, skip wiring toolbar extras and context menu into LibraryContext (caller owns the toolbar). Default true. */
   registerToolbar?: boolean
+  /** Rendered after the shelves, inside this component's scroll container. */
+  footer?: ReactNode
 }
 
-export default function BookshelfClient({ entityType, queryOverride, registerToolbar = true }: BookshelfClientProps) {
+export default function BookshelfClient({ entityType, queryOverride, registerToolbar = true, footer }: BookshelfClientProps) {
   const t = useTypeSafeTranslations()
   const pathname = usePathname()
   const { library, setItemCount, orderBy, collapseSeries, showSubtitles, seriesSortBy, authorSortBy, updateSetting, filterBy, bookshelfView, setNumIssues } =
@@ -396,6 +398,11 @@ export default function BookshelfClient({ entityType, queryOverride, registerToo
           )}
         </div>
       )}
+
+      {/* Extra content after the shelves, inside this scroll container. The
+          shelves above are virtualized and absolutely positioned, so anything
+          here must sit outside that block but still within the scroll area. */}
+      {footer}
     </div>
   )
 }
