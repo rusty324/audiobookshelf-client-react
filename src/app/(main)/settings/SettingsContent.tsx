@@ -30,8 +30,10 @@ export default function SettingsContent(props: {
   className?: string
 }) {
   const t = useTypeSafeTranslations()
-  // Back link, title and more info icon are shown in the app bar on mobile
-  const hasMobileHeaderContent = !!props.entityCount || !!props.addButton
+  // Back link, title and more info icon are shown in the app bar on mobile.
+  // secondaryButton counts too: a page that passes only that would otherwise
+  // have its button hidden on mobile with nothing to indicate why.
+  const hasMobileHeaderContent = !!props.entityCount || !!props.addButton || !!props.secondaryButton
 
   return (
     <div className={mergeClasses('mx-auto w-full max-w-4xl p-2 md:p-6', props.className ?? '')}>
