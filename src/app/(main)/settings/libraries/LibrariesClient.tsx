@@ -1,12 +1,13 @@
 'use client'
 
 import { useLibraries } from '@/contexts/LibrariesContext'
+import { useGlobalToast } from '@/contexts/ToastContext'
 import { useTypeSafeTranslations } from '@/hooks/useTypeSafeTranslations'
 import { Library } from '@/types/api'
 import { useCallback, useEffect, useState } from 'react'
 import SettingsContent from '../SettingsContent'
 import { SETTINGS_MORE_INFO_URLS } from '../settingsNavItems'
-import { createLibrary, editLibrary, saveLibraryOrder } from './actions'
+import { createLibrary, editLibrary, fetchBooksExport, saveLibraryOrder } from './actions'
 import LibrariesList from './LibrariesList'
 import LibraryEditModal, { LibraryFormData } from './LibraryEditModal'
 
@@ -20,6 +21,8 @@ export default function LibrariesClient({ libraries }: LibraryClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingLibrary, setEditingLibrary] = useState<Library | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const { showToast } = useGlobalToast()
 
   useEffect(() => {
     setLibraries(libraries)
@@ -72,10 +75,40 @@ export default function LibrariesClient({ libraries }: LibraryClientProps) {
     [editingLibrary, handleCloseModal]
   )
 
+  /** Download a JSON listing of every book across all accessible book libraries. */
+  const handleExportBooks = useCallback(async () => {
+    setIsExporting(true)
+    try {
+      const entries = await fetchBooksExport()
+      const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' })
+      const blobUrl = URL.createObjectURL(blob)
+
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = 'audiobookshelf-books.json'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+
+      // Release the object URL once the download has been handed off
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
+    } catch (error) {
+      console.error('[LibrariesClient] Failed to export books', error)
+      showToast(t('ToastExportBooksFailed'), { type: 'error' })
+    } finally {
+      setIsExporting(false)
+    }
+  }, [showToast, t])
+
   return (
     <>
       <SettingsContent
         title={t('HeaderLibraries')}
+        secondaryButton={{
+          label: t('ButtonExportBooksJson'),
+          onClick: handleExportBooks,
+          disabled: isExporting
+        }}
         addButton={{
           label: t('ButtonAddLibrary'),
           onClick: handleAddLibrary

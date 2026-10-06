@@ -160,6 +160,16 @@ const BookDetailsEdit = ({
     [details.series, handleFieldUpdate]
   )
 
+  const handleMoveSeries = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      const newSeriesList = [...details.series]
+      const [movedSeries] = newSeriesList.splice(fromIndex, 1)
+      newSeriesList.splice(toIndex, 0, movedSeries)
+      handleFieldUpdate('series')(newSeriesList)
+    },
+    [details.series, handleFieldUpdate]
+  )
+
   const genreItems = useMemo(() => (details.genres || []).map((g) => ({ value: g, content: g })), [details.genres])
   const handleAddGenre = useCallback(
     (item: MultiSelectItem<string>) => {
@@ -245,6 +255,8 @@ const BookDetailsEdit = ({
               onItemAdded={handleAddSeries}
               onItemRemoved={handleRemoveSeries}
               onItemEdited={handleEditSeries}
+              onItemMoved={handleMoveSeries}
+              orderable
             />
           </div>
         </div>

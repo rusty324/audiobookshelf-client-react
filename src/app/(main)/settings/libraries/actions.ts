@@ -40,3 +40,11 @@ export async function matchAll(libraryId: string): Promise<void> {
 export async function getFilesystemPaths(path: string, level: number): Promise<GetFilesystemPathsResponse> {
   return api.getFilesystemPaths(path, level)
 }
+
+/**
+ * Fetch a JSON listing of every book across all book libraries the user can
+ * access. Returned to the client so it can offer it as a file download.
+ */
+export async function fetchBooksExport(): Promise<unknown[]> {
+  return api.apiRequest<unknown[]>('/api/libraries/books-export')
+}

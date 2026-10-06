@@ -11,6 +11,13 @@ interface AddButtonProps {
   onClick: () => void
 }
 
+/** An optional extra header action, rendered before the add button. */
+interface SecondaryButtonProps {
+  label: string
+  onClick: () => void
+  disabled?: boolean
+}
+
 export default function SettingsContent(props: {
   children: React.ReactNode
   title: string
@@ -18,12 +25,15 @@ export default function SettingsContent(props: {
   moreInfoUrl?: string
   backLink?: string
   addButton?: AddButtonProps
+  secondaryButton?: SecondaryButtonProps
   entityCount?: number
   className?: string
 }) {
   const t = useTypeSafeTranslations()
-  // Back link, title and more info icon are shown in the app bar on mobile
-  const hasMobileHeaderContent = !!props.entityCount || !!props.addButton
+  // Back link, title and more info icon are shown in the app bar on mobile.
+  // secondaryButton counts too: a page that passes only that would otherwise
+  // have its button hidden on mobile with nothing to indicate why.
+  const hasMobileHeaderContent = !!props.entityCount || !!props.addButton || !!props.secondaryButton
 
   return (
     <div className={mergeClasses('mx-auto w-full max-w-4xl p-2 md:p-6', props.className ?? '')}>
@@ -44,6 +54,11 @@ export default function SettingsContent(props: {
             </div>
           )}
           <div className="grow" />
+          {props.secondaryButton && (
+            <Btn size="small" disabled={props.secondaryButton.disabled} onClick={props.secondaryButton.onClick}>
+              {props.secondaryButton.label}
+            </Btn>
+          )}
           {props.addButton && (
             <Btn size="small" onClick={props.addButton.onClick}>
               {props.addButton.label}
