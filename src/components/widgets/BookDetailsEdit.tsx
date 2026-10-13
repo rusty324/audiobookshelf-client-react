@@ -328,8 +328,6 @@ const BookDetailsEdit = ({
                 value={details.explicit}
                 onChange={handleFieldUpdate('explicit')}
                 label={t('LabelExplicit')}
-                checkboxBgClass="bg-primary"
-                borderColorClass="border-gray-600"
                 labelClass="ps-2 text-base font-semibold"
               />
             </div>
@@ -338,8 +336,6 @@ const BookDetailsEdit = ({
                 value={details.abridged}
                 onChange={handleFieldUpdate('abridged')}
                 label={t('LabelAbridged')}
-                checkboxBgClass="bg-primary"
-                borderColorClass="border-gray-600"
                 labelClass="ps-2 text-base font-semibold"
               />
             </div>

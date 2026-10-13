@@ -47,6 +47,7 @@ interface BookMatchViewProps {
   availableNarrators: MultiSelectItem<string>[]
   availableSeries: MultiSelectItem<string>[]
   onDone: () => void
+  onApplied?: () => void
 }
 
 const defaultMatchUsage: BookMatchUsage = {
@@ -78,7 +79,8 @@ export default function BookMatchView({
   availableTags,
   availableNarrators,
   availableSeries,
-  onDone
+  onDone,
+  onApplied
 }: BookMatchViewProps) {
   const t = useTypeSafeTranslations()
   const [selectedMatch, setSelectedMatch] = useState<BookSearchResult>(() => processBookMatchData(selectedMatchOrig))
@@ -244,6 +246,7 @@ export default function BookMatchView({
       buildMatchUpdatePayload={buildMatchUpdatePayload}
       selectedMatch={selectedMatch}
       onDone={onDone}
+      onApplied={onApplied}
     >
       {({ selectedMatchUsage, createFieldUsageHandler }) => (
         <>
@@ -423,8 +426,6 @@ export default function BookMatchView({
               onChange={createFieldValueHandler('explicit')}
               label={t('LabelExplicit')}
               currentValue={mediaMetadata.explicit}
-              checkboxBgClass="bg-primary"
-              borderColorClass="border-border"
               labelClass="ps-2 text-base font-semibold"
             />
           )}
@@ -437,8 +438,6 @@ export default function BookMatchView({
               onChange={createFieldValueHandler('abridged')}
               label={t('LabelAbridged')}
               currentValue={abridgedCurrentValue}
-              checkboxBgClass="bg-primary"
-              borderColorClass="border-border"
               labelClass="ps-2 text-base font-semibold"
               checkedLabelKey="LabelAbridgedChecked"
               uncheckedLabelKey="LabelAbridgedUnchecked"

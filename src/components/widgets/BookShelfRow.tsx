@@ -2,6 +2,7 @@
 
 import { useTypeSafeTranslations } from '@/hooks/useTypeSafeTranslations'
 import { mergeClasses } from '@/lib/merge-classes'
+import { scrollHorizontallyClamped } from '@/lib/scrollContainer'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface BookShelfRowProps {
@@ -47,27 +48,27 @@ export default function BookShelfRow({ title, children, className }: BookShelfRo
   const scrollLeft = () => {
     if (!shelfRef.current) return
     setIsScrolling(true)
-    shelfRef.current.scrollBy({ left: -window.innerWidth, behavior: 'smooth' })
+    scrollHorizontallyClamped(shelfRef.current, -window.innerWidth)
   }
 
   const scrollRight = () => {
     if (!shelfRef.current) return
     setIsScrolling(true)
-    shelfRef.current.scrollBy({ left: window.innerWidth, behavior: 'smooth' })
+    scrollHorizontallyClamped(shelfRef.current, window.innerWidth)
   }
 
   return (
-    <div className={mergeClasses('relative w-full', className)}>
+    <div className={mergeClasses('bleed-mx relative', className)}>
       <div
         ref={shelfRef}
-        className="bookshelf-row categorizedBookshelfRow no-scroll pl-4e md:pl-8e relative w-full max-w-full overflow-x-auto overflow-y-hidden"
+        className="bookshelf-row categorizedBookshelfRow no-scroll safe-ps-4e md:safe-ps-8e relative w-full max-w-full overflow-x-auto overflow-y-hidden"
         onScroll={handleScroll}
       >
-        <div className="pt-6e pr-4e flex h-full w-full items-center">{children}</div>
+        <div className="pt-6e safe-pe-4e flex h-full w-full items-center">{children}</div>
       </div>
 
       <div className="relative">
-        <div className="categoryPlacard left-4e md:left-8e w-44e relative top-0 z-30 transform rounded-md text-center">
+        <div className="categoryPlacard safe-start-4e md:safe-start-8e w-44e relative top-0 z-30 transform rounded-md text-center">
           <div className="shinyBlack px-2e flex h-full w-full items-center justify-center rounded-xs border">
             <h2 style={{ fontSize: '0.9em' }}>{title}</h2>
           </div>

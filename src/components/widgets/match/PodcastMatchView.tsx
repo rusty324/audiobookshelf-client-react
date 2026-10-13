@@ -40,6 +40,7 @@ interface PodcastMatchViewProps {
   availableGenres: MultiSelectItem<string>[]
   availableTags: MultiSelectItem<string>[]
   onDone: () => void
+  onApplied?: () => void
 }
 
 const defaultMatchUsage: PodcastMatchUsage = {
@@ -65,7 +66,8 @@ export default function PodcastMatchView({
   coverUrl,
   availableGenres,
   availableTags,
-  onDone
+  onDone,
+  onApplied
 }: PodcastMatchViewProps) {
   const t = useTypeSafeTranslations()
   const [selectedMatch, setSelectedMatch] = useState<PodcastSearchResult>(() => processPodcastMatchData(selectedMatchOrig))
@@ -143,6 +145,7 @@ export default function PodcastMatchView({
       buildMatchUpdatePayload={buildMatchUpdatePayload}
       selectedMatch={selectedMatch}
       onDone={onDone}
+      onApplied={onApplied}
     >
       {({ selectedMatchUsage, createFieldUsageHandler }) => (
         <>
@@ -282,8 +285,6 @@ export default function PodcastMatchView({
               onChange={createFieldValueHandler('explicit')}
               label={t('LabelExplicit')}
               currentValue={mediaMetadata.explicit}
-              checkboxBgClass="bg-primary"
-              borderColorClass="border-border"
               labelClass="ps-2 text-base font-semibold"
             />
           )}
