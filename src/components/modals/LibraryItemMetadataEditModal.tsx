@@ -1,5 +1,6 @@
 'use client'
 
+import { AnthologyStoriesEditModalBody } from '@/components/modals/AnthologyStoriesEditModalBody'
 import { ChaptersEditModalBody } from '@/components/modals/ChaptersEditModalBody'
 import { CoverEditModalBody } from '@/components/modals/CoverEditModal'
 import { LibraryItemEditModalContent } from '@/components/modals/LibraryItemEditModal'
@@ -22,7 +23,7 @@ import {
   type TransitionStartFunction
 } from 'react'
 
-export type MetadataEditSection = 'details' | 'cover' | 'chapters' | 'match'
+export type MetadataEditSection = 'details' | 'cover' | 'chapters' | 'stories' | 'match'
 
 export type LibraryItemMetadataEditModalProps = {
   isOpen: boolean
@@ -64,6 +65,7 @@ interface LibraryItemMetadataEditModalBodyProps {
   chaptersCloseRef: Ref<UnsavedChangesLeaveHandle | null>
   detailsCloseRef: Ref<UnsavedChangesLeaveHandle | null>
   matchCloseRef: Ref<UnsavedChangesLeaveHandle | null>
+  storiesCloseRef: Ref<UnsavedChangesLeaveHandle | null>
   onChaptersPendingChange: (pending: boolean) => void
 }
 
@@ -80,6 +82,7 @@ function LibraryItemMetadataEditModalBody({
   chaptersCloseRef,
   detailsCloseRef,
   matchCloseRef,
+  storiesCloseRef,
   onChaptersPendingChange
 }: LibraryItemMetadataEditModalBodyProps) {
   const t = useTypeSafeTranslations()
@@ -90,7 +93,7 @@ function LibraryItemMetadataEditModalBody({
 
   useEffect(() => {
     if (!resolvedItem) return
-    if (selectedSection === 'chapters' && !isBookWithAudioTracks(resolvedItem)) {
+    if ((selectedSection === 'chapters' || selectedSection === 'stories') && !isBookWithAudioTracks(resolvedItem)) {
       setSelectedSection('details')
     }
   }, [resolvedItem, selectedSection, setSelectedSection])
@@ -102,12 +105,14 @@ function LibraryItemMetadataEditModalBody({
     ]
     if (includeChaptersNav) {
       result.push({ id: 'chapters', label: t('HeaderChapters'), icon: 'format_list_bulleted' })
+      // Stories are ranges of chapters, so they live beside them
+      result.push({ id: 'stories', label: t('HeaderStories'), icon: 'auto_stories' })
     }
     result.push({ id: 'match', label: t('HeaderMatch'), icon: 'travel_explore' })
     return result
   }, [includeChaptersNav, t])
 
-  const bodyInitialSection = includeChaptersNav ? initialSection : initialSection === 'chapters' ? 'details' : initialSection
+  const bodyInitialSection = includeChaptersNav ? initialSection : initialSection === 'chapters' || initialSection === 'stories' ? 'details' : initialSection
 
   return (
     <SectionedModalBody
@@ -132,6 +137,8 @@ function LibraryItemMetadataEditModalBody({
         <CoverEditModalBody stableBodyHeight={false} fillParent />
       ) : selectedSection === 'chapters' ? (
         <ChaptersEditModalBody closeRequestRef={chaptersCloseRef} onPendingChange={onChaptersPendingChange} />
+      ) : selectedSection === 'stories' ? (
+        <AnthologyStoriesEditModalBody closeRequestRef={storiesCloseRef} />
       ) : (
         // Unguarded: the match was just applied, so there is nothing to discard.
         <MatchModalBody closeRequestRef={matchCloseRef} onMatchApplied={() => setSelectedSection('details')} />
@@ -153,6 +160,7 @@ export default function LibraryItemMetadataEditModal(props: LibraryItemMetadataE
   const chaptersCloseRef = useRef<UnsavedChangesLeaveHandle | null>(null)
   const detailsCloseRef = useRef<UnsavedChangesLeaveHandle | null>(null)
   const matchCloseRef = useRef<UnsavedChangesLeaveHandle | null>(null)
+  const storiesCloseRef = useRef<UnsavedChangesLeaveHandle | null>(null)
 
   useEffect(() => {
     if (!isOpen) return
@@ -163,17 +171,19 @@ export default function LibraryItemMetadataEditModal(props: LibraryItemMetadataE
     (sectionId: string) => {
       const next = sectionId as MetadataEditSection
       if (next === selectedSection) return
-      requestSectionLeaveOrProceed([detailsCloseRef.current, chaptersCloseRef.current, matchCloseRef.current], () => setSelectedSection(next))
+      requestSectionLeaveOrProceed([detailsCloseRef.current, chaptersCloseRef.current, matchCloseRef.current, storiesCloseRef.current], () =>
+        setSelectedSection(next)
+      )
     },
     [selectedSection]
   )
 
   const handleHubBack = useCallback((proceed: () => void) => {
-    requestSectionLeaveOrProceed([detailsCloseRef.current, chaptersCloseRef.current, matchCloseRef.current], proceed)
+    requestSectionLeaveOrProceed([detailsCloseRef.current, chaptersCloseRef.current, matchCloseRef.current, storiesCloseRef.current], proceed)
   }, [])
 
   const handleClose = useCallback(() => {
-    requestSectionLeaveOrProceed([detailsCloseRef.current, chaptersCloseRef.current, matchCloseRef.current], onClose)
+    requestSectionLeaveOrProceed([detailsCloseRef.current, chaptersCloseRef.current, matchCloseRef.current, storiesCloseRef.current], onClose)
   }, [onClose])
 
   const mobileInitialSection = initialSection === 'details' ? undefined : initialSection
@@ -185,7 +195,9 @@ export default function LibraryItemMetadataEditModal(props: LibraryItemMetadataE
       {...(navCtxMode ? { navCtx: props.navCtx } : { libraryItem: props.libraryItem })}
       additionalProcessing={isSavePending || filterDataLoading || isChaptersPending}
       className="md:max-w-[min(95vw,60rem)]"
-      onBeforeNavigate={(proceed) => requestSectionLeaveOrProceed([detailsCloseRef.current, chaptersCloseRef.current, matchCloseRef.current], proceed)}
+      onBeforeNavigate={(proceed) =>
+        requestSectionLeaveOrProceed([detailsCloseRef.current, chaptersCloseRef.current, matchCloseRef.current, storiesCloseRef.current], proceed)
+      }
     >
       <LibraryItemMetadataEditModalBody
         isOpen={isOpen}
@@ -201,6 +213,7 @@ export default function LibraryItemMetadataEditModal(props: LibraryItemMetadataE
         chaptersCloseRef={chaptersCloseRef}
         detailsCloseRef={detailsCloseRef}
         matchCloseRef={matchCloseRef}
+        storiesCloseRef={storiesCloseRef}
         onChaptersPendingChange={setIsChaptersPending}
       />
     </LibraryItemModal>

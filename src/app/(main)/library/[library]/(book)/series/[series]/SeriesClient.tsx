@@ -5,6 +5,7 @@ import { markSeriesFinishedAction, readdSeriesToContinueListeningAction } from '
 import RssFeedOpenCloseModal from '@/components/modals/RssFeedOpenCloseModal'
 import ConfirmDialog from '@/components/widgets/ConfirmDialog'
 import SeriesPlaceholders from '@/components/widgets/SeriesPlaceholders'
+import SeriesReadingOrder from '@/components/widgets/SeriesReadingOrder'
 import { useLibrary } from '@/contexts/LibraryContext'
 import { useSocketEvent } from '@/contexts/SocketContext'
 import { useGlobalToast } from '@/contexts/ToastContext'
@@ -38,6 +39,7 @@ export default function SeriesClient({ series: seriesProp }: SeriesClientProps) 
   }, [seriesProp.id, collapseBookSeries])
 
   const [series, setSeries] = useState(seriesProp)
+  const [readingOrderReloadKey, setReadingOrderReloadKey] = useState(0)
   const [markSeriesConfirmOpen, setMarkSeriesConfirmOpen] = useState(false)
 
   useEffect(() => {
@@ -213,15 +215,20 @@ export default function SeriesClient({ series: seriesProp }: SeriesClientProps) 
 
   return (
     <div className="h-full w-full">
-      {/* The placeholder panel goes in the bookshelf's footer slot rather than
-          after it: the bookshelf owns the scroll container, and its shelves are
-          virtualized and absolutely positioned, so entries cannot be
-          interleaved with the books. */}
+      {/* The reading order and placeholder panels go in the bookshelf's footer
+          slot rather than after it: the bookshelf owns the scroll container,
+          and its shelves are virtualized and absolutely positioned, so entries
+          cannot be interleaved with the books. */}
       <BookshelfClient
         entityType="items"
         queryOverride={seriesBooksQuery}
         registerToolbar={false}
-        footer={<SeriesPlaceholders seriesId={series.id} onPromoted={() => router.refresh()} />}
+        footer={
+          <>
+            <SeriesReadingOrder libraryId={library.id} seriesId={series.id} reloadKey={readingOrderReloadKey} />
+            <SeriesPlaceholders seriesId={series.id} onPromoted={() => router.refresh()} onChanged={() => setReadingOrderReloadKey((key) => key + 1)} />
+          </>
+        }
       />
 
       <RssFeedOpenCloseModal
