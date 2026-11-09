@@ -18,12 +18,14 @@ import { useGlobalToast } from '@/contexts/ToastContext'
 import { useUser } from '@/contexts/UserContext'
 import { useTypeSafeTranslations } from '@/hooks/useTypeSafeTranslations'
 import type { SeriesPlaceholder, SeriesPlaceholderSuggestion } from '@/types/api'
-import { useCallback, useEffect, useState, useTransition } from 'react'
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 
 interface SeriesPlaceholdersProps {
   seriesId: string
   /** Called after a placeholder is promoted, so the bookshelf above can refresh. */
   onPromoted?: () => void
+  /** Called after placeholders are added, edited, removed or promoted. */
+  onChanged?: () => void
 }
 
 interface PlaceholderForm {
@@ -41,7 +43,7 @@ const emptyForm: PlaceholderForm = { title: '', sequence: '', authorName: '' }
  * Styled as deliberately absent rather than broken: these are not the same as
  * items whose files went missing, and must not look like them.
  */
-export default function SeriesPlaceholders({ seriesId, onPromoted }: SeriesPlaceholdersProps) {
+export default function SeriesPlaceholders({ seriesId, onPromoted, onChanged }: SeriesPlaceholdersProps) {
   const t = useTypeSafeTranslations()
   const { showToast } = useGlobalToast()
   const { userCanUpdate, serverSettings } = useUser()
@@ -68,16 +70,26 @@ export default function SeriesPlaceholders({ seriesId, onPromoted }: SeriesPlace
   const [promoteTarget, setPromoteTarget] = useState<SeriesPlaceholder | null>(null)
   const [isMutating, startMutateTransition] = useTransition()
 
-  const loadPlaceholders = useCallback(async () => {
-    try {
-      const data = await fetchSeriesPlaceholdersAction(seriesId)
-      setPlaceholders(data.placeholders ?? [])
-    } catch (error) {
-      console.error('Failed to load series placeholders', error)
-    } finally {
-      setLoaded(true)
-    }
-  }, [seriesId])
+  // A ref, so a new callback from the parent does not trigger a reload
+  const onChangedRef = useRef(onChanged)
+  useEffect(() => {
+    onChangedRef.current = onChanged
+  }, [onChanged])
+
+  const loadPlaceholders = useCallback(
+    async (changed = false) => {
+      try {
+        const data = await fetchSeriesPlaceholdersAction(seriesId)
+        setPlaceholders(data.placeholders ?? [])
+        if (changed) onChangedRef.current?.()
+      } catch (error) {
+        console.error('Failed to load series placeholders', error)
+      } finally {
+        setLoaded(true)
+      }
+    },
+    [seriesId]
+  )
 
   useEffect(() => {
     setLoaded(false)
@@ -119,7 +131,7 @@ export default function SeriesPlaceholders({ seriesId, onPromoted }: SeriesPlace
           await createSeriesPlaceholderAction(seriesId, payload)
         }
         closeForm()
-        await loadPlaceholders()
+        await loadPlaceholders(true)
       } catch (error) {
         // A 409 carries a specific reason - already owned, or already listed -
         // which is more useful than a generic failure
@@ -173,7 +185,7 @@ export default function SeriesPlaceholders({ seriesId, onPromoted }: SeriesPlace
           { type: 'success' }
         )
         dismissSuggestions()
-        await loadPlaceholders()
+        await loadPlaceholders(true)
       } catch (error) {
         console.error('Failed to add suggested placeholders', error)
         showToast(t('ToastSeriesPlaceholderFailed'), { type: 'error' })
@@ -188,7 +200,7 @@ export default function SeriesPlaceholders({ seriesId, onPromoted }: SeriesPlace
       try {
         await deleteSeriesPlaceholderAction(seriesId, target.id)
         setRemoveTarget(null)
-        await loadPlaceholders()
+        await loadPlaceholders(true)
       } catch (error) {
         console.error('Failed to remove series placeholder', error)
         showToast(t('ToastSeriesPlaceholderFailed'), { type: 'error' })
@@ -204,7 +216,7 @@ export default function SeriesPlaceholders({ seriesId, onPromoted }: SeriesPlace
         await promoteSeriesPlaceholderAction(seriesId, target.id)
         setPromoteTarget(null)
         showToast(t('ToastPlaceholderPromoted'), { type: 'success' })
-        await loadPlaceholders()
+        await loadPlaceholders(true)
         onPromoted?.()
       } catch (error) {
         const message = error instanceof Error && error.message ? error.message : t('ToastPromotePlaceholderFailed')

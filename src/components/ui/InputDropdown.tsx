@@ -21,6 +21,8 @@ interface InputDropdownProps {
   showAllWhenEmpty?: boolean
   onChange?: (value: string | number) => void
   onNewItem?: (value: string) => void
+  /** Report a cleared input as an empty value. Off by default, where clearing the text leaves the value unchanged. */
+  allowEmpty?: boolean
   className?: string
   ref?: React.Ref<InputDropdownRef>
 }
@@ -39,6 +41,7 @@ function InputDropdown({
   showAllWhenEmpty = false,
   onChange,
   onNewItem,
+  allowEmpty = false,
   className,
   ref
 }: InputDropdownProps) {
@@ -107,8 +110,11 @@ function InputDropdown({
       if (!items.includes(val)) {
         onNewItem?.(val)
       }
+    } else if (!val && allowEmpty && lastSubmittedValueRef.current) {
+      lastSubmittedValueRef.current = ''
+      onChange?.('')
     }
-  }, [textInput, onChange, onNewItem, items])
+  }, [textInput, onChange, onNewItem, items, allowEmpty])
 
   const onInputBlur = useCallback(() => {
     submitTextInput()

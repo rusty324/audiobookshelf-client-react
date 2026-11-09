@@ -2079,3 +2079,62 @@ export interface SeriesPlaceholderBulkResult {
   added: number
   skipped: number
 }
+
+/**
+ * A story inside an anthology book that has its own place in a series, such
+ * as a novella set between books 2 and 3. Stored as a time range of the book
+ * so it survives chapter edits. A book with stories is an anthology.
+ */
+export interface AnthologyStory {
+  id: string
+  bookId: string
+  title: string
+  /** Seconds */
+  startTime: number
+  /** Seconds */
+  endTime: number
+  sequence: string
+  series: { id: string; name: string } | null
+}
+
+export interface AnthologyStoriesResponse {
+  stories: AnthologyStory[]
+}
+
+/** A story as saved. The series is named rather than referenced, the same way the book editor names series. */
+export interface AnthologyStoryInput {
+  title: string
+  startTime: number
+  endTime: number
+  seriesName: string
+  sequence: string
+}
+
+export interface SeriesReadingOrderBook {
+  type: 'book'
+  libraryItemId: string
+  title: string
+  sequence: string
+}
+
+export interface SeriesReadingOrderStory {
+  type: 'story'
+  id: string
+  title: string
+  sequence: string
+  startTime: number
+  endTime: number
+  /** The anthology the story is in */
+  libraryItemId: string
+  bookTitle: string
+}
+
+export type SeriesReadingOrderPlaceholder = SeriesPlaceholder & { type: 'placeholder' }
+
+export type SeriesReadingOrderEntry = SeriesReadingOrderBook | SeriesReadingOrderStory | SeriesReadingOrderPlaceholder
+
+export interface SeriesReadingOrderResponse {
+  entries: SeriesReadingOrderEntry[]
+  /** Whether any anthology story is placed in the series; without one, the book grid already shows the order. */
+  hasStories: boolean
+}

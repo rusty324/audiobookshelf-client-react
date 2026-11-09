@@ -2,6 +2,7 @@
 
 import { clearPodcastDownloadQueueAction } from '@/app/actions/mediaActions'
 import LibraryItemMetadataEditModal, { type MetadataEditSection } from '@/components/modals/LibraryItemMetadataEditModal'
+import AnthologyStoriesTable from '@/components/widgets/AnthologyStoriesTable'
 import AudioTracksTable from '@/components/widgets/AudioTracksTable'
 import AuthorLinks from '@/components/widgets/AuthorLinks'
 import ChaptersTable from '@/components/widgets/ChaptersTable'
@@ -43,6 +44,8 @@ export default function LibraryItemClient({ libraryItem: initialLibraryItem }: L
 
   const [libraryItem, setLibraryItem] = useState(initialLibraryItem)
   const [metadataEditSection, setMetadataEditSection] = useState<MetadataEditSection | null>(null)
+  // Stories are saved from the edit modal, so reload them when it closes
+  const [storiesReloadKey, setStoriesReloadKey] = useState(0)
   const [isClearQueueDialogOpen, setIsClearQueueDialogOpen] = useState(false)
   const [podcastEpisodesInOrder, setPodcastEpisodesInOrder] = useState<PodcastEpisode[]>([])
   const handlePodcastEpisodesInOrderChange = useCallback((episodes: PodcastEpisode[]) => {
@@ -88,6 +91,7 @@ export default function LibraryItemClient({ libraryItem: initialLibraryItem }: L
 
   const handleCloseMetadataEdit = () => {
     setMetadataEditSection(null)
+    setStoriesReloadKey((key) => key + 1)
   }
 
   const handleItemUpdated = (updatedItem: BookLibraryItem | PodcastLibraryItem) => {
@@ -248,6 +252,16 @@ export default function LibraryItemClient({ libraryItem: initialLibraryItem }: L
                   <ChaptersTable
                     libraryItem={libraryItem as BookLibraryItem}
                     onEditChapters={() => handleOpenMetadataEdit('chapters')}
+                    onGoToTimestamp={handleGoToTimestamp}
+                  />
+                )}
+
+                {isBookWithAudio && (
+                  <AnthologyStoriesTable
+                    libraryId={library.id}
+                    libraryItemId={libraryItem.id}
+                    reloadKey={storiesReloadKey}
+                    onEditStories={() => handleOpenMetadataEdit('stories')}
                     onGoToTimestamp={handleGoToTimestamp}
                   />
                 )}
