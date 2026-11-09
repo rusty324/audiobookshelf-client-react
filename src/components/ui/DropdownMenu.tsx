@@ -43,7 +43,7 @@ const CONTENT_SIZED_MENU_MAX_WIDTH = '50vw'
  */
 export function DropdownItemLabel({ text, subtext, className, wrapText = false }: { text: string; subtext?: string; className?: string; wrapText?: boolean }) {
   const t = useTypeSafeTranslations()
-  const textOverflowClass = wrapText ? 'line-clamp-2 break-words whitespace-normal' : 'truncate'
+  const textOverflowClass = wrapText ? 'line-clamp-2 wrap-break-word whitespace-normal' : 'truncate'
 
   if (!subtext) {
     return (
@@ -362,6 +362,16 @@ export default function DropdownMenu({
     active: showMenu,
     getElement: useCallback((container, index) => container.querySelector(`#${dropdownId}-item-${index}`) as HTMLElement, [dropdownId])
   })
+
+  useLayoutEffect(() => {
+    const menu = menuRef.current
+    if (!showMenu || usePortal || !menu) return
+    const { bottom, top, height } = menu.getBoundingClientRect()
+    if (bottom > window.innerHeight && top > height) {
+      menu.style.top = 'auto'
+      menu.style.bottom = '100%'
+    }
+  }, [showMenu, usePortal, menuRef])
 
   // Reset submenu hover/close state when menu closes
   useEffect(() => {

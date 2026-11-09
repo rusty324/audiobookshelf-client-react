@@ -74,17 +74,17 @@ const Toast: React.FC<ToastProps> = ({ id, type = 'info', title, message, durati
     >
       <div className={`${getTypeClasses()} w-full max-w-sm rounded-lg border p-4 shadow-lg`}>
         <div className="flex items-start gap-3">
-          <span cy-id="toast-icon" className="material-symbols flex-shrink-0 text-xl text-white" aria-hidden="true">
+          <span cy-id="toast-icon" className="material-symbols shrink-0 text-xl text-white" aria-hidden="true">
             {getIcon()}
           </span>
           <div className="min-w-0 flex-1">
-            {title && <div className="mb-1 text-sm font-semibold text-white">{title}</div>}
-            <div className="text-sm text-white/90">{message}</div>
+            {title && <div className="mb-1 text-sm font-semibold break-all text-white">{title}</div>}
+            <div className="text-sm break-all text-white/90">{message}</div>
           </div>
           <button
             cy-id="close-button"
             onClick={handleClose}
-            className="flex-shrink-0 text-white/70 transition-colors duration-200 hover:text-white"
+            className="shrink-0 text-white/70 transition-colors duration-200 hover:text-white"
             aria-label={t('ButtonCloseNotification')}
           >
             <span className="text-lg">×</span>

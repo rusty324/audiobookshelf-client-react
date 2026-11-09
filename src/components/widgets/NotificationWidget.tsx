@@ -102,7 +102,7 @@ export default function NotificationWidget({ className = '', fallbackLibraryId }
         {tasksRunning ? (
           <Tooltip text={t('LabelTasks')} position="bottom">
             <span className="relative">
-              <LoadingSpinner className="scale-110 !cursor-pointer" />
+              <LoadingSpinner className="scale-110 cursor-pointer!" />
               {showUnseenSuccessIndicator && <span className="bg-success pointer-events-none absolute -top-1 -right-0.5 h-2 w-2 rounded-full" />}
             </span>
           </Tooltip>
@@ -121,7 +121,7 @@ export default function NotificationWidget({ className = '', fallbackLibraryId }
       {showMenu && (
         <div
           ref={menuRef}
-          className="bg-bg border-border safe-end-4 fixed start-auto top-16 z-[70] mt-0 w-auto max-w-[24rem] min-w-[16rem] overflow-x-hidden overflow-y-auto rounded-md border text-base shadow-lg ring-1 ring-black/5 focus:outline-none md:mt-1.5"
+          className="bg-bg border-border safe-end-4 fixed inset-s-auto top-16 z-70 mt-0 w-auto max-w-96 min-w-64 overflow-x-hidden overflow-y-auto rounded-md border text-base shadow-lg ring-1 ring-black/5 focus:outline-none md:mt-1.5"
           style={{ maxHeight: '80vh' }}
         >
           <ul className="h-full w-full" role="listbox" aria-label={t('LabelTasks')}>

@@ -991,9 +991,6 @@ export interface User {
   username: string
   email?: string
   type: 'root' | 'admin' | 'user' | 'guest'
-  /** Legacy non-expiring token (empty string for root users when hidden) */
-  token: string
-  isOldToken?: boolean
   mediaProgress: MediaProgress[]
   /** Series IDs to hide from continue listening */
   seriesHideFromContinueListening: string[]
@@ -1182,6 +1179,38 @@ export interface UpdateServerSettingsResponse {
 /** Response from POST /logout on the Audiobookshelf server (and /internal-api/logout passthrough) */
 export interface ServerLogoutResponse {
   redirect_url?: string | null
+}
+
+/** Parsed user agent from GET /api/me/sessions */
+export interface AuthSessionDeviceInfo {
+  browserName?: string
+  browserVersion?: string
+  osName?: string
+  osVersion?: string
+  deviceType?: string
+  model?: string
+  vendor?: string
+}
+
+/** Active session from GET /api/me/sessions */
+export interface AuthSession {
+  id: string
+  ipAddress: string | null
+  userAgent: string | null
+  deviceInfo: AuthSessionDeviceInfo | null
+  createdAt: number | null
+  updatedAt: number | null
+  /** True when this row is the session that made the request */
+  current: boolean
+}
+
+/** Response from GET /api/me/sessions */
+export interface GetAuthSessionsResponse {
+  total: number
+  numPages: number
+  page: number
+  itemsPerPage: number
+  sessions: AuthSession[]
 }
 
 export interface ApiKey {

@@ -11,8 +11,8 @@
  * - IconBtn children are treated as Material icon names and skipped
  * - Some findings will be false positives — use // i18n-ignore on the line
  */
-import { createRequire } from 'module'
 import fs from 'fs'
+import { createRequire } from 'module'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -49,15 +49,13 @@ const EXCLUDED_PATH_FRAGMENTS = [
   `${path.sep}locales${path.sep}`,
   `${path.sep}types${path.sep}translations.ts`,
   `${path.sep}cypress${path.sep}`,
-  `${path.sep}lib${path.sep}languages.ts`
+  `${path.sep}lib${path.sep}languages.ts`,
+  `${path.sep}lib${path.sep}podcastSearchRegions.ts`
 ]
-
-const CATALOG_PATH_FRAGMENT = `${path.sep}components_catalog${path.sep}`
 
 function parseArgs(argv) {
   const options = {
     scanPath: defaultScanPath,
-    includeCatalog: false,
     json: false,
     minLength: 2
   }
@@ -70,8 +68,6 @@ function parseArgs(argv) {
         throw new Error('Missing value for --path')
       }
       options.scanPath = path.isAbsolute(value) ? value : path.join(repoRoot, value)
-    } else if (arg === '--include-catalog') {
-      options.includeCatalog = true
     } else if (arg === '--json') {
       options.json = true
     } else if (arg === '--min-length') {
@@ -101,7 +97,6 @@ Find hardcoded user-facing strings that should use t('MessageId').
 
 Options:
   --path <file-or-dir>   Limit scan (default: src)
-  --include-catalog      Include components_catalog examples
   --json                 Also print machine-readable JSON to stdout
   --min-length <n>       Ignore very short strings (default: 2)
   -h, --help             Show this help
@@ -154,7 +149,7 @@ function collectFiles(scanPath) {
   return files
 }
 
-function shouldExcludeFile(filePath, includeCatalog) {
+function shouldExcludeFile(filePath) {
   const normalized = filePath.split(path.sep).join(path.sep)
 
   if (normalized.endsWith('.cy.tsx')) {
@@ -165,10 +160,6 @@ function shouldExcludeFile(filePath, includeCatalog) {
     if (normalized.includes(fragment)) {
       return true
     }
-  }
-
-  if (!includeCatalog && normalized.includes(CATALOG_PATH_FRAGMENT)) {
-    return true
   }
 
   return false
@@ -527,7 +518,7 @@ function printReport(findings) {
 function main() {
   const options = parseArgs(process.argv.slice(2))
   const valueToKeys = buildReverseLookup(loadJson(enUsPath))
-  const files = collectFiles(options.scanPath).filter((file) => !shouldExcludeFile(file, options.includeCatalog))
+  const files = collectFiles(options.scanPath).filter((file) => !shouldExcludeFile(file))
 
   const findings = []
   for (const file of files) {

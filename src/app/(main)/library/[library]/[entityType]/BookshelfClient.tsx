@@ -1,6 +1,7 @@
 'use client'
 
 import Btn from '@/components/ui/Btn'
+import MoreInfoIcon from '@/components/ui/MoreInfoIcon'
 import PageMessage from '@/components/ui/PageMessage'
 import { useCardSize } from '@/contexts/CardSizeContext'
 import { useLibrary } from '@/contexts/LibraryContext'
@@ -9,6 +10,7 @@ import { useBookshelfData } from '@/hooks/useBookshelfData'
 import { useBookshelfQuery } from '@/hooks/useBookshelfQuery'
 import { useBookshelfUpdater } from '@/hooks/useBookshelfUpdater'
 import { useBookshelfVirtualizer } from '@/hooks/useBookshelfVirtualizer'
+import { useMatchAllAuthors } from '@/hooks/useMatchAllAuthors'
 import { usePersistentScroll } from '@/hooks/usePersistentScroll'
 import { useTypeSafeTranslations } from '@/hooks/useTypeSafeTranslations'
 import { isLibraryIssuesPage } from '@/hooks/useLibraryRouteGuard'
@@ -235,6 +237,7 @@ export default function BookshelfClient({ entityType, queryOverride, registerToo
 
   // Get Entity Config
   const config = validEntities.includes(entityType as string) ? ENTITY_CONFIGS[entityType] : null
+  const { matchAllAuthors } = useMatchAllAuthors()
 
   useEffect(() => {
     if (!config || !registerToolbar) return
@@ -250,9 +253,12 @@ export default function BookshelfClient({ entityType, queryOverride, registerToo
 
     setContextMenuItems(menuItems)
 
-    // Set up action handler (delegated to entity config)
     setContextMenuActionHandler((action: string) => {
-      config.handleContextMenuAction(action, { updateSetting, library })
+      config.handleContextMenuAction(action, {
+        updateSetting,
+        library,
+        matchAllAuthors: entityType === 'authors' ? matchAllAuthors : undefined
+      })
     })
 
     return () => {
@@ -271,7 +277,8 @@ export default function BookshelfClient({ entityType, queryOverride, registerToo
     showSubtitles,
     collapseSeries,
     user,
-    t
+    t,
+    matchAllAuthors
   ])
 
   // Get empty state message based on entity config
@@ -281,6 +288,13 @@ export default function BookshelfClient({ entityType, queryOverride, registerToo
     const messageKey = config.getEmptyMessageKey(filterBy, isPodcastLibrary)
     return messageKey ? t(messageKey) : ''
   }
+
+  const playlistsCollectionsEmptyHelpKey =
+    entityType === 'playlists' || (entityType === 'collections' && filterBy === 'all')
+      ? entityType === 'collections'
+        ? 'MessageBookshelfNoCollectionsHelp'
+        : 'MessageNoUserPlaylistsHelp'
+      : null
 
   if (!validEntities.includes(entityType as string) || !config) {
     return (
@@ -389,6 +403,12 @@ export default function BookshelfClient({ entityType, queryOverride, registerToo
                 <LibraryEmptyState library={library} showScanButton={['admin', 'root'].includes(user.type)} />
               ) : (
                 <PageMessage message={getEmptyMessage()}>
+                  {playlistsCollectionsEmptyHelpKey ? (
+                    <>
+                      <p className="text-foreground-muted max-w-lg text-center text-sm">{t(playlistsCollectionsEmptyHelpKey)}</p>
+                      <MoreInfoIcon moreInfoUrl="https://audiobookshelf.org/docs/documentation/libraries/common-content/playlists" size="xl" />
+                    </>
+                  ) : null}
                   {entityType === 'items' && !onIssuesPage && filterBy !== 'all' ? (
                     <Btn size="small" color="bg-primary" onClick={() => updateSetting('filterBy', 'all')}>
                       {t('ButtonClearFilter')}

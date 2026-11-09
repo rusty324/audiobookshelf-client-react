@@ -49,7 +49,7 @@ export default function SeriesCardSkeleton({ bookshelfView, sizeMultiplier, orde
         <div className="absolute inset-0 flex">
           {/* First book cover placeholder */}
           <div
-            className="absolute top-0 h-full rounded-xs bg-gradient-to-br from-gray-700 to-gray-800"
+            className="absolute top-0 h-full rounded-xs bg-linear-to-br from-gray-700 to-gray-800"
             style={{
               width: `${coverHeight / coverAspect}px`,
               left: 0,
@@ -59,7 +59,7 @@ export default function SeriesCardSkeleton({ bookshelfView, sizeMultiplier, orde
           />
           {/* Second book cover placeholder */}
           <div
-            className="absolute top-0 h-full rounded-xs bg-gradient-to-br from-gray-600 to-gray-700"
+            className="absolute top-0 h-full rounded-xs bg-linear-to-br from-gray-600 to-gray-700"
             style={{
               width: `${coverHeight / coverAspect}px`,
               left: `${(coverWidth - coverHeight / coverAspect) / 2}px`,
@@ -69,7 +69,7 @@ export default function SeriesCardSkeleton({ bookshelfView, sizeMultiplier, orde
           />
           {/* Third book cover placeholder */}
           <div
-            className="absolute top-0 h-full rounded-xs bg-gradient-to-br from-gray-500 to-gray-600"
+            className="absolute top-0 h-full rounded-xs bg-linear-to-br from-gray-500 to-gray-600"
             style={{
               width: `${coverHeight / coverAspect}px`,
               right: 0,
@@ -94,7 +94,7 @@ export default function SeriesCardSkeleton({ bookshelfView, sizeMultiplier, orde
       {/* Footer skeleton - uses same structure as SeriesCard for exact height matching */}
       {isDetailView ? (
         // Detail view footer skeleton - matches SeriesCard's detailBottomText structure
-        <div className="relative start-0 end-0 z-30 mx-auto rounded-md py-[0.25em] text-center">
+        <div className="relative inset-s-0 inset-e-0 z-30 mx-auto rounded-md py-[0.25em] text-center">
           {/* Title skeleton - same structure as SeriesCard */}
           <p className="mx-auto animate-pulse truncate rounded bg-gray-600" style={{ fontSize: `${labelFontSize}em`, width: '70%' }}>
             &nbsp;
@@ -108,7 +108,7 @@ export default function SeriesCardSkeleton({ bookshelfView, sizeMultiplier, orde
         </div>
       ) : (
         // Standard view footer skeleton (shiny black placard)
-        <div className="categoryPlacard absolute start-0 end-0 -bottom-[1.5em] z-30 mx-auto h-[1.5em] w-[12em] rounded-md text-center">
+        <div className="categoryPlacard absolute inset-s-0 inset-e-0 bottom-[-1.5em] z-30 mx-auto h-[1.5em] w-[12em] rounded-md text-center">
           <div className="flex h-full w-full animate-pulse items-center justify-center rounded-xs bg-gray-700" style={{ padding: '0em 0.5em' }}>
             {/* Title text skeleton - same structure as SeriesCard */}
             <p className="truncate rounded bg-gray-600" style={{ fontSize: `${labelFontSize}em`, width: '60%' }}>

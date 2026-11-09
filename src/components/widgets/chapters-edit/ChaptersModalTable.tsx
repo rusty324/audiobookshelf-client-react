@@ -27,8 +27,7 @@ const TABLE_CLASS = 'table-fixed w-full border-collapse text-sm'
 const HEADER_CELL_CLASS = 'text-foreground-muted px-2 py-2 text-start text-xs font-semibold'
 
 function startTimeColumnClass(mediaDuration: number, base: 'header' | 'cell'): string {
-  const width =
-    mediaDuration >= 360000 ? 'w-[11rem] min-w-[11rem] md:w-[12.25rem] md:min-w-[12.25rem]' : 'w-[10rem] min-w-[10rem] md:w-[10.75rem] md:min-w-[10.75rem]'
+  const width = mediaDuration >= 360000 ? 'w-44 min-w-44 md:w-49 md:min-w-49' : 'w-40 min-w-40 md:w-43 md:min-w-43'
   return base === 'header' ? mergeClasses('text-start px-1 md:px-2', width) : mergeClasses('px-1 align-top md:px-2', width)
 }
 

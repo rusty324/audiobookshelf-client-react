@@ -368,8 +368,8 @@ function TooltipCore({
   }, [middlewareData.arrow, resolvedPlacement])
 
   const tooltipClass = mergeClasses(
-    'inline-block whitespace-normal break-words text-center',
-    'rounded-sm bg-primary text-foreground text-xs px-2 py-1 shadow-lg z-[1000]',
+    'inline-block whitespace-normal wrap-break-word text-center',
+    'rounded-sm bg-primary text-foreground text-xs px-2 py-1 shadow-lg z-1000',
     'transition-opacity duration-300',
     open ? 'opacity-100' : 'opacity-0',
     'pointer-events-none',
