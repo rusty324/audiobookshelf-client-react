@@ -1,6 +1,5 @@
 'use client'
 
-import { useMediaContext } from '@/contexts/MediaContext'
 import { PLAYER_OVERLAY_Z_CLASS } from '@/components/player/playerShellClasses'
 import BookmarksModal from './BookmarksModal'
 import ChaptersModal from './ChaptersModal'
@@ -14,9 +13,6 @@ interface PlayerModalsProps {
 }
 
 export default function PlayerModals({ controls }: PlayerModalsProps) {
-  const { isPlayerFullscreen } = useMediaContext()
-  const playerOverlayZIndex = isPlayerFullscreen ? PLAYER_OVERLAY_Z_CLASS : undefined
-
   const {
     playerHandler,
     streamLibraryItem,
@@ -49,14 +45,14 @@ export default function PlayerModals({ controls }: PlayerModalsProps) {
         isOpen={isSettingsModalOpen}
         settings={settings}
         hasChapters={chapters.length > 0}
-        zIndexClass={playerOverlayZIndex}
+        zIndexClass={PLAYER_OVERLAY_Z_CLASS}
         onClose={() => setIsSettingsModalOpen(false)}
         onUpdateSettings={playerHandler.controls.updateSettings}
       />
       <ChaptersModal
         isOpen={isChaptersModalOpen}
         playerHandler={playerHandler}
-        zIndexClass={playerOverlayZIndex}
+        zIndexClass={PLAYER_OVERLAY_Z_CLASS}
         onClose={() => setIsChaptersModalOpen(false)}
       />
       {!isPodcast && (
@@ -66,7 +62,7 @@ export default function PlayerModals({ controls }: PlayerModalsProps) {
           currentTime={bookmarkCurrentTime}
           libraryItemId={libraryItemId}
           playbackRate={settings.playbackRate}
-          zIndexClass={playerOverlayZIndex}
+          zIndexClass={PLAYER_OVERLAY_Z_CLASS}
           onClose={() => setIsBookmarksModalOpen(false)}
           onSelect={(bookmark) => seek(bookmark.time)}
         />
@@ -77,7 +73,7 @@ export default function PlayerModals({ controls }: PlayerModalsProps) {
         timerType={sleepTimerType}
         remaining={sleepTimerRemaining}
         hasChapters={chapters.length > 0}
-        zIndexClass={playerOverlayZIndex}
+        zIndexClass={PLAYER_OVERLAY_Z_CLASS}
         onClose={() => setIsSleepTimerModalOpen(false)}
         onSet={setSleepTimer}
         onCancel={() => {
@@ -89,7 +85,7 @@ export default function PlayerModals({ controls }: PlayerModalsProps) {
         autoRewindAmount={settings.sleepTimerAutoRewindAmount}
         onAutoRewindAmountChange={(value) => updateSettings({ sleepTimerAutoRewindAmount: value })}
       />
-      <QueueItemsModal isOpen={isQueueModalOpen} zIndexClass={playerOverlayZIndex} onClose={() => setIsQueueModalOpen(false)} />
+      <QueueItemsModal isOpen={isQueueModalOpen} zIndexClass={PLAYER_OVERLAY_Z_CLASS} onClose={() => setIsQueueModalOpen(false)} />
     </>
   )
 }

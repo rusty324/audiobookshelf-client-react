@@ -47,16 +47,16 @@ export default function CollectionCardSkeleton({ bookshelfView, sizeMultiplier }
         {/* Simulated two book covers side by side */}
         <div className="absolute inset-0 flex">
           {/* First book cover placeholder */}
-          <div className="h-full bg-gradient-to-br from-gray-700 to-gray-800" style={{ width: `${coverWidth / 2}px` }} />
+          <div className="h-full bg-linear-to-br from-gray-700 to-gray-800" style={{ width: `${coverWidth / 2}px` }} />
           {/* Second book cover placeholder */}
-          <div className="h-full bg-gradient-to-br from-gray-600 to-gray-700" style={{ width: `${coverWidth / 2}px` }} />
+          <div className="h-full bg-linear-to-br from-gray-600 to-gray-700" style={{ width: `${coverWidth / 2}px` }} />
         </div>
       </div>
 
       {/* Footer skeleton - uses same structure as CollectionCard for exact height matching */}
       {isDetailView ? (
         // Detail view footer skeleton
-        <div className="relative start-0 end-0 z-30 mx-auto rounded-md py-[0.25em] text-center">
+        <div className="relative inset-s-0 inset-e-0 z-30 mx-auto rounded-md py-[0.25em] text-center">
           {/* Title skeleton */}
           <p className="mx-auto animate-pulse truncate rounded bg-gray-600" style={{ fontSize: `${labelFontSize}em`, width: '70%' }}>
             &nbsp;
@@ -65,7 +65,7 @@ export default function CollectionCardSkeleton({ bookshelfView, sizeMultiplier }
       ) : (
         // Standard view footer skeleton (shiny black placard)
         <div
-          className="categoryPlacard absolute start-0 end-0 -bottom-[1.5em] z-30 mx-auto h-[1.5em] rounded-md text-center"
+          className="categoryPlacard absolute inset-s-0 inset-e-0 bottom-[-1.5em] z-30 mx-auto h-[1.5em] rounded-md text-center"
           style={{ width: `${Math.min(200, coverWidth)}px` }}
         >
           <div className="flex h-full w-full animate-pulse items-center justify-center rounded-xs bg-gray-700" style={{ padding: '0em 0.5em' }}>

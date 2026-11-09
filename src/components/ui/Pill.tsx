@@ -317,7 +317,7 @@ export const Pill = <T,>({
     >
       {!disabled && showMoveButtons && (
         <div
-          className="absolute -start-1 top-0 z-20 flex -translate-y-1/2 items-center gap-0.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          className="absolute -inset-s-1 top-0 z-20 flex -translate-y-1/2 items-center gap-0.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           role="group"
           aria-label={t('LabelReorderActions')}
         >
@@ -352,7 +352,7 @@ export const Pill = <T,>({
         </div>
       )}
       {!disabled && (
-        <div className="absolute -end-1 top-0 z-20 flex -translate-y-1/2 items-center gap-0.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+        <div className="absolute -inset-e-1 top-0 z-20 flex -translate-y-1/2 items-center gap-0.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
           {showEditButton && (
             <button
               type="button"

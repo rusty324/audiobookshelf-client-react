@@ -47,7 +47,6 @@ export default function LibrariesClient({ libraries }: LibraryClientProps) {
     async (formData: LibraryFormData) => {
       setIsProcessing(true)
       try {
-        // TODO: Full validation
         const validFolders = formData.folders.filter((f) => f.fullPath.trim() !== '')
 
         const payload = {

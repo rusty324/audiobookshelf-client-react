@@ -79,12 +79,10 @@ export default function CoverEdit({ libraryItem }: CoverEditProps) {
     const libraryFiles = (libraryItem.libraryFiles || []) as LibraryFile[]
     return libraryFiles
       .filter((f) => f.fileType === 'image')
-      .map(
-        (file): LocalCover => ({
-          ...file,
-          localPath: getLibraryFileUrl(libraryItem.id, file.ino, libraryItem.updatedAt)
-        })
-      )
+      .map((file): LocalCover => ({
+        ...file,
+        localPath: getLibraryFileUrl(libraryItem.id, file.ino, libraryItem.updatedAt)
+      }))
   }, [libraryItem.libraryFiles, libraryItem.id, libraryItem.updatedAt])
 
   const searchTitleLabel = provider.startsWith('audible') ? t('LabelSearchTitleOrASIN') : provider === 'itunes' ? t('LabelSearchTerm') : t('LabelSearchTitle')
@@ -243,7 +241,7 @@ export default function CoverEdit({ libraryItem }: CoverEditProps) {
           {/* book cover overlay */}
           {media.coverPath && (
             <div className="absolute top-0 left-0 z-10 h-full w-full opacity-0 transition-opacity duration-100 hover:opacity-100">
-              <div className="absolute top-0 left-0 h-16 w-full bg-gradient-to-b from-black/60 to-transparent" />
+              <div className="absolute top-0 left-0 h-16 w-full bg-linear-to-b from-black/60 to-transparent" />
               {userCanDelete && (
                 <div
                   className={mergeClasses(

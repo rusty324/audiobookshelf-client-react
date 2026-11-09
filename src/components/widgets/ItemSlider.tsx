@@ -1,6 +1,7 @@
 'use client'
 
 import IconBtn from '@/components/ui/IconBtn'
+import { useTypeSafeTranslations } from '@/hooks/useTypeSafeTranslations'
 import { mergeClasses } from '@/lib/merge-classes'
 import { scrollHorizontallyClamped } from '@/lib/scrollContainer'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -20,6 +21,7 @@ interface SliderNavBtnProps {
 }
 
 const SliderNavBtn = ({ direction, disabled, onClick }: SliderNavBtnProps) => {
+  const t = useTypeSafeTranslations()
   const isLeft = direction === 'left'
   return (
     <IconBtn
@@ -31,7 +33,7 @@ const SliderNavBtn = ({ direction, disabled, onClick }: SliderNavBtnProps) => {
       size="custom"
       disabled={disabled}
       onClick={onClick}
-      ariaLabel={isLeft ? 'Scroll Left' : 'Scroll Right'}
+      ariaLabel={isLeft ? t('ButtonScrollLeft') : t('ButtonScrollRight')}
     >
       <span style={{ fontSize: '1.5em' }}>{isLeft ? 'chevron_left' : 'chevron_right'}</span>
     </IconBtn>
@@ -83,7 +85,7 @@ export default function ItemSlider({ title, children, className = '', bleed = tr
   return (
     <div className={mergeClasses('mt-6e', bleed && 'bleed-mx', className)}>
       <div className={mergeClasses('py-1e flex items-center', bleed ? 'safe-ps-10e safe-pe-4e' : 'px-4e')}>
-        <div className="text-foreground flex-grow font-bold">{title}</div>
+        <div className="text-foreground grow font-bold">{title}</div>
 
         {isScrollable && (
           <div className="gap-1e flex items-center">

@@ -124,8 +124,8 @@ export interface PlayerHandlerControls {
   updateSettings: UsePlayerSettingsReturn['updateSettings']
   /** Stop local/cast output immediately without ending the playback session. */
   stopPlaybackImmediately: () => void
-  /** Close the player and end session */
-  closePlayer: () => Promise<void>
+  /** Close the player and end session. `localOnly` skips the server call (the server already closed it). */
+  closePlayer: (localOnly?: boolean) => Promise<void>
   /** Read playback time from the player instance (for handlers without tick subscriptions). */
   getCurrentTime: () => number
 }
@@ -640,12 +640,14 @@ export function usePlayerHandler(options: UsePlayerHandlerOptions = {}): UsePlay
     }
   }, [stopSyncInterval])
 
-  const closePlayer = useCallback(async () => {
+  const closePlayer = useCallback(async (localOnly = false) => {
     const savedTime = playerRef.current?.getCurrentTime() ?? currentTimeRef.current
     stopPlaybackImmediately()
-    // Flush while the session is still open - closeSession ends it
-    flushEvents()
-    await closeSession(() => savedTime)
+    // Flush while the session is still open - closeSession ends it. Skip it when
+    // the server already closed the session (localOnly): the events endpoint only
+    // accepts open sessions, so the request would just be rejected.
+    if (!localOnly) flushEvents()
+    await closeSession(localOnly ? undefined : () => savedTime, localOnly)
     resetEvents()
 
     // Reset state

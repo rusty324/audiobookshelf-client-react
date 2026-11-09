@@ -7,10 +7,10 @@ import { getTypeSafeTranslations } from '@/lib/getTypeSafeTranslations'
 import { getTheme } from '@/lib/theme'
 import { cookies } from 'next/headers'
 import AccountActionsRow from './AccountActionsRow'
+import AccountEReaderDevices from './AccountEReaderDevices'
+import AuthSessionsTable from './AuthSessionsTable'
 import ThemeSelector from './ThemeSelector'
 import UserLanguageSelector from './UserLanguageSelector'
-
-export const dynamic = 'force-dynamic'
 
 export default async function AccountPage() {
   const currentUser = await getCurrentUser()
@@ -29,7 +29,7 @@ export default async function AccountPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-xl p-8">
+    <div className="mx-auto w-full max-w-2xl p-8">
       <h1 className="text-xl">{t('HeaderAccount')}</h1>
 
       <div className="mt-8 flex flex-col items-start gap-4">
@@ -48,6 +48,8 @@ export default async function AccountPage() {
           <ThemeSelector value={currentTheme} label={t('LabelTheme')} />
         </div>
         <div className="bg-border h-px w-full" />
+        <AccountEReaderDevices />
+        <AuthSessionsTable />
         <AccountActionsRow />
       </div>
     </div>

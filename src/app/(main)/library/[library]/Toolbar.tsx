@@ -13,8 +13,18 @@ const BOOKSHELF_PAGE_PATTERNS = ['/items', '/issues', '/series', '/collections',
 export default function Toolbar() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { library, itemCount, itemCountSupplement, detailToolbarTitle, contextMenuItems, onContextMenuAction, toolbarExtras, filterBy, seriesFilterBy } =
-    useLibrary()
+  const {
+    library,
+    itemCount,
+    itemCountSupplement,
+    detailToolbarTitle,
+    contextMenuItems,
+    onContextMenuAction,
+    toolbarExtras,
+    filterBy,
+    seriesFilterBy,
+    isMatchingAllAuthors
+  } = useLibrary()
   const { isSelectionMode } = useBookshelfSelection()
   const t = useTypeSafeTranslations()
 
@@ -28,6 +38,7 @@ export default function Toolbar() {
   const isPlaylistDetailPage = pathname.includes('/playlist/')
   const isNarratorsPage = pathname.endsWith('/narrators')
 
+  const isAuthorsPage = pathname.endsWith('/authors')
   const isSeriesPage = pathname.endsWith('/series')
   const activeFilter = isSeriesPage ? seriesFilterBy : filterBy
   const isBookshelfEmpty = itemCount === 0 && activeFilter === 'all'
@@ -72,11 +83,11 @@ export default function Toolbar() {
       <div className="safe-px-4 flex h-full w-full items-center justify-between">
         {showSearchSummary && (
           <>
-            <div className="flex-grow" />
+            <div className="grow" />
             <p className="text-foreground text-base">
               {t('MessageSearchResultsFor')} &quot;{searchQuery}&quot;
             </p>
-            <div className="flex-grow" />
+            <div className="grow" />
           </>
         )}
 
@@ -116,14 +127,22 @@ export default function Toolbar() {
           </>
         )}
 
-        {!showSearchSummary && <div className={showToolbarExtras ? 'hidden flex-grow md:block' : 'flex-grow'} />}
+        {!showSearchSummary && <div className={showToolbarExtras ? 'hidden grow md:block' : 'grow'} />}
 
         {showToolbarExtras && (
           <div className="ms-1.5 flex min-w-0 flex-1 items-center justify-end gap-1.5 md:ms-0 md:me-2 md:flex-none md:gap-4">{toolbarExtras}</div>
         )}
 
         {showContextMenu && (
-          <ContextMenuDropdown items={contextMenuItems} borderless usePortal size="small" autoWidth onAction={(args) => handleAction(args.action)} />
+          <ContextMenuDropdown
+            items={contextMenuItems}
+            borderless
+            usePortal
+            size="small"
+            autoWidth
+            processing={isAuthorsPage && isMatchingAllAuthors}
+            onAction={(args) => handleAction(args.action)}
+          />
         )}
       </div>
     </div>

@@ -48,7 +48,7 @@ const DEFAULT_SETTINGS: PlayerSettings = {
   jumpBackwardAmount: 10,
   playbackRate: 1.0,
   playbackRateIncrementDecrement: 0.1,
-  volume: 0.5,
+  volume: 1,
   sleepTimerAutoRewindAmount: 60
 }
 

@@ -31,6 +31,7 @@ import {
   FetchPodcastFeedResponse,
   FFProbeData,
   GetApiKeysResponse,
+  GetAuthSessionsResponse,
   GetAuthorsResponse,
   GetBackupsResponse,
   GetCollectionsResponse,
@@ -102,7 +103,7 @@ import {
 } from '../types/api'
 
 import { ApiError, NetworkError, UnauthorizedError } from './apiErrors'
-import { getBasePath, withBasePath } from './basePath'
+import { getBasePath, getSafeRedirectPath, withBasePath } from './basePath'
 import { isNextRedirectError } from './nextErrors'
 import { getUserDefaultUrlPath } from './userPermissions'
 
@@ -320,6 +321,11 @@ async function parseApiResponseBody<T>(response: Response): Promise<T> {
   }
 }
 
+type ApiRequestInit = RequestInit & {
+  /** Send the current refresh token as `x-refresh-token` so the server can identify this session. */
+  forwardRefreshToken?: boolean
+}
+
 /**
  * Make an authenticated API request to the server
  * Throws UnauthorizedError, ApiError, or NetworkError on failure
@@ -327,16 +333,18 @@ async function parseApiResponseBody<T>(response: Response): Promise<T> {
  * On 401 (or missing access token with a refresh cookie), exchanges the refresh token for new
  * session tokens, updates Next.js cookies when possible, and retries once. Server actions return updated cookies to the browser.
  */
-export async function apiRequest<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
+export async function apiRequest<T = unknown>(endpoint: string, options: ApiRequestInit = {}): Promise<T> {
+  const { forwardRefreshToken = false, ...requestInit } = options
+
   try {
     const isPublic = PUBLIC_ENDPOINTS.includes(endpoint)
     const cookieStore = await cookies()
     const baseUrl = getServerBaseUrl()
     const url = `${baseUrl}${endpoint}`
 
-    const isFormData = options.body instanceof FormData
+    const isFormData = requestInit.body instanceof FormData
 
-    const fetchHeaders = new Headers(options.headers as Record<string, string>)
+    const fetchHeaders = new Headers(requestInit.headers as Record<string, string>)
 
     if (!isFormData && !fetchHeaders.has('Content-Type')) {
       fetchHeaders.set('Content-Type', 'application/json')
@@ -361,19 +369,26 @@ export async function apiRequest<T = unknown>(endpoint: string, options: Request
         throw new UnauthorizedError('No authentication token found')
       }
 
+      if (forwardRefreshToken && refreshToken) {
+        fetchHeaders.set('x-refresh-token', refreshToken)
+      }
+
       fetchHeaders.set('Authorization', `Bearer ${accessToken}`)
     }
 
     let response = await fetch(url, {
-      ...options,
+      ...requestInit,
       headers: fetchHeaders
     })
 
     if (!isPublic && response.status === 401 && refreshToken && !didProactiveRefresh) {
       const session = await applyRefreshedSessionOrRedirect(cookieStore, refreshToken)
       fetchHeaders.set('Authorization', `Bearer ${session.accessToken}`)
+      if (forwardRefreshToken && session.refreshToken) {
+        fetchHeaders.set('x-refresh-token', session.refreshToken)
+      }
       response = await fetch(url, {
-        ...options,
+        ...requestInit,
         headers: fetchHeaders
       })
     }
@@ -445,7 +460,7 @@ export async function completeOidcLogin(accessToken: string, redirectParam?: str
     const data = await getCurrentUser()
     setLanguageCookie(await cookies(), data.serverSettings?.language)
 
-    const safeRedirect = redirectParam?.startsWith('/') && !redirectParam.startsWith('//') ? redirectParam : null
+    const safeRedirect = getSafeRedirectPath(redirectParam)
     return safeRedirect || getUserDefaultUrlPath(data.userDefaultLibraryId ?? null)
   } catch (error) {
     console.error('[completeOidcLogin] Error:', error)
@@ -456,6 +471,23 @@ export async function completeOidcLogin(accessToken: string, redirectParam?: str
 export const getListeningStats = cache(async (): Promise<ListeningStats> => {
   return apiRequest<ListeningStats>('/api/me/listening-stats')
 })
+
+/** Active auth sessions for the current user. The refresh token marks which row is this browser. */
+export async function getAuthSessions(page = 0, itemsPerPage = 10): Promise<GetAuthSessionsResponse> {
+  const params = new URLSearchParams({
+    page: String(page),
+    itemsPerPage: String(itemsPerPage)
+  })
+  return apiRequest<GetAuthSessionsResponse>(`/api/me/sessions?${params.toString()}`, {
+    forwardRefreshToken: true
+  })
+}
+
+export async function deleteAuthSession(sessionId: string): Promise<void> {
+  return apiRequest<void>(`/api/me/sessions/${encodeURIComponent(sessionId)}`, {
+    method: 'DELETE'
+  })
+}
 
 export async function getUserYearStats(year: number): Promise<UserYearStats> {
   return apiRequest<UserYearStats>(`/api/me/stats/year/${year}`)
@@ -1114,6 +1146,13 @@ export async function updateEReaderDevices(ereaderDevices: EReaderDevice[]): Pro
   })
 }
 
+export async function updateMyEReaderDevices(ereaderDevices: EReaderDevice[]): Promise<UpdateEReaderDevicesResponse> {
+  return apiRequest<UpdateEReaderDevicesResponse>('/api/me/ereader-devices', {
+    method: 'POST',
+    body: JSON.stringify({ ereaderDevices })
+  })
+}
+
 export const getAuthSettings = cache(async (): Promise<AuthenticationSettings> => {
   return apiRequest<AuthenticationSettings>('/api/auth-settings')
 })
@@ -1292,6 +1331,15 @@ export async function clearPodcastDownloadQueue(libraryItemId: string): Promise<
  */
 export async function checkPodcastNewEpisodes(libraryItemId: string, limit: number): Promise<{ episodes: RssPodcastEpisode[] }> {
   return apiRequest<{ episodes: RssPodcastEpisode[] }>(`/api/podcasts/${libraryItemId}/checknew?limit=${limit}`)
+}
+
+/**
+ * Quick match all podcast episodes against the RSS feed.
+ */
+export async function quickMatchPodcastEpisodes(libraryItemId: string): Promise<{ numEpisodesUpdated: number }> {
+  return apiRequest<{ numEpisodesUpdated: number }>(`/api/podcasts/${libraryItemId}/match-episodes?override=1`, {
+    method: 'POST'
+  })
 }
 
 /**
@@ -1638,6 +1686,13 @@ export async function deleteAuthor(authorId: string): Promise<void> {
  */
 export async function getFilesystemPaths(path: string, level: number): Promise<GetFilesystemPathsResponse> {
   return apiRequest(`/api/filesystem?path=${encodeURIComponent(path)}&level=${level}`)
+}
+
+export async function checkFilesystemPathExists(directory: string, folderPath: string): Promise<{ exists: boolean; libraryItemTitle?: string }> {
+  return apiRequest(`/api/filesystem/pathexists`, {
+    method: 'POST',
+    body: JSON.stringify({ directory, folderPath })
+  })
 }
 
 /**

@@ -57,14 +57,14 @@ export default function SideRailMobileDrawer({ isOpen, onClose, libraries, curre
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-[65] bg-black/50 transition-opacity duration-100 ease-in-out ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
+        className={`fixed inset-0 z-65 bg-black/50 transition-opacity duration-100 ease-in-out ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
         onClick={handleBackdropClick}
         aria-hidden="true"
       />
 
       {/* Drawer */}
       <div
-        className={`bg-bg box-shadow-side border-border safe-ps-minus-4 fixed start-0 top-0 z-70 box-content flex h-full w-64 min-w-64 transform flex-col border-e shadow-2xl transition-transform duration-100 ease-in-out ${
+        className={`bg-bg box-shadow-side border-border safe-ps-minus-4 fixed inset-s-0 top-0 z-70 box-content flex h-full w-64 min-w-64 transform flex-col border-e shadow-2xl transition-transform duration-100 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full'
         }`}
       >
@@ -79,7 +79,7 @@ export default function SideRailMobileDrawer({ isOpen, onClose, libraries, curre
           <div className="mt-1 flex items-center gap-2">
             <LibraryIcon icon={library.icon} size={6} decorative className="text-foreground-muted" />
             <h2 className="text-foreground-muted min-w-0 flex-1 truncate text-base font-medium">{library.name}</h2>
-            <IconBtn className="shrink-0" ariaLabel="Menu" size="large" borderless onClick={onClose}>
+            <IconBtn className="shrink-0" ariaLabel={t('ButtonMenu')} size="large" borderless onClick={onClose}>
               arrow_back
             </IconBtn>
           </div>

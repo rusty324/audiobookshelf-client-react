@@ -128,7 +128,7 @@ export default function Modal({
       aria-modal="true"
       data-abs-modal
       className={mergeClasses(
-        'modal modal-bg safe-px fixed start-0 top-0 flex h-full w-full items-center justify-center overflow-x-hidden pt-[50px] pb-2',
+        'modal modal-bg safe-px fixed inset-s-0 top-0 flex h-full w-full items-center justify-center overflow-x-hidden pt-[50px] pb-2',
         zIndexClass,
         bgOpacityClass
       )}
@@ -136,7 +136,7 @@ export default function Modal({
       onKeyDown={handleKeyDown}
     >
       {/* Background gradient */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-36 w-full bg-gradient-to-t from-transparent via-gray-900/50 to-gray-800/70 opacity-90" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-36 w-full bg-linear-to-t from-transparent via-gray-900/50 to-gray-800/70 opacity-90" />
 
       {/* Close button */}
       <button

@@ -19,10 +19,10 @@ export interface UserContextType {
   userCanDownload: boolean
   userCanUpload: boolean
   userIsAdminOrUp: boolean
-  token: string
   serverSettings: ServerSettings
   userDefaultLibraryId?: string
   ereaderDevices: EReaderDevice[]
+  setEreaderDevices: (ereaderDevices: EReaderDevice[]) => void
   Source: string
   /** Book media id or podcast episode id matches `MediaProgress.mediaItemId` */
   getMediaItemProgress: (mediaItemId: string) => MediaProgress | undefined
@@ -46,10 +46,16 @@ export function UserProvider({ children, initialUser }: { children: ReactNode; i
     }
   })
 
+  useSocketEvent<{ ereaderDevices?: EReaderDevice[] }>('ereader-devices-updated', (data) => {
+    if (!data?.ereaderDevices) return
+    setCurrentUserData((prev) => ({
+      ...prev,
+      ereaderDevices: data.ereaderDevices ?? prev.ereaderDevices
+    }))
+  })
+
   useSocketEvent<UserItemProgressUpdatedPayload>('user_item_progress_updated', (payload) => {
     if (!payload?.id) return
-
-    // TODO: handle check if media item is currently playing to show alert if another device is playing the same item
 
     setCurrentUserData((prev) => {
       const currentProgress = prev.user.mediaProgress || []
@@ -78,6 +84,13 @@ export function UserProvider({ children, initialUser }: { children: ReactNode; i
     setCurrentUserData(initialUser)
   }, [initialUser])
 
+  const setEreaderDevices = useCallback((ereaderDevices: EReaderDevice[]) => {
+    setCurrentUserData((prev) => ({
+      ...prev,
+      ereaderDevices
+    }))
+  }, [])
+
   const mergeServerSettings = useCallback((settings: ServerSettings | null | undefined) => {
     if (!settings) {
       return
@@ -91,10 +104,10 @@ export function UserProvider({ children, initialUser }: { children: ReactNode; i
   const contextValue: UserContextType = {
     user,
     ...permissionFlags,
-    token: user.token,
     serverSettings: currentUserData.serverSettings,
     userDefaultLibraryId: currentUserData.userDefaultLibraryId,
     ereaderDevices: currentUserData.ereaderDevices,
+    setEreaderDevices,
     Source: currentUserData.Source,
     getMediaItemProgress: (mediaItemId: string) => user.mediaProgress.find((p) => p.mediaItemId === mediaItemId),
     getBookmarksForLibraryItem: (libraryItemId: string) => user.bookmarks?.filter((bm) => bm.libraryItemId === libraryItemId) ?? [],
