@@ -31,11 +31,13 @@ export interface UsePlaybackEventLogReturn {
  *
  * Events are batched rather than sent individually so that scrubbing costs one
  * request instead of one per tick. The log is supplementary, so a failed flush
- * is logged and swallowed rather than surfaced or retried aggressively.
+ * is logged and retried once with the next flush, never surfaced.
  */
 export function usePlaybackEventLog({ getSessionId }: UsePlaybackEventLogOptions): UsePlaybackEventLogReturn {
   const bufferRef = useRef<PlaybackEventSubmission[]>([])
   const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  /** Events from a flush that failed once already; a second failure drops them. */
+  const retriedRef = useRef<Set<PlaybackEventSubmission>>(new Set())
 
   const flushEvents = useCallback(() => {
     const sessionId = getSessionId()
@@ -44,9 +46,21 @@ export function usePlaybackEventLog({ getSessionId }: UsePlaybackEventLogOptions
     const events = bufferRef.current
     bufferRef.current = []
 
-    void recordPlaybackEventsAction(sessionId, events).catch((error) => {
-      console.error('[usePlaybackEventLog] Failed to send playback events', error)
-    })
+    void recordPlaybackEventsAction(sessionId, events)
+      .then(() => {
+        for (const event of events) retriedRef.current.delete(event)
+      })
+      .catch((error) => {
+        // One blip (a dropped connection, a server restart) used to lose the
+        // whole batch. Put back what has not been retried yet, ahead of
+        // anything queued since, so the next flush sends it in order. Events
+        // that already had their retry are dropped: the log is supplementary.
+        const again = events.filter((event) => !retriedRef.current.has(event))
+        for (const event of again) retriedRef.current.add(event)
+        for (const event of events) if (!again.includes(event)) retriedRef.current.delete(event)
+        bufferRef.current = [...again, ...bufferRef.current].slice(-MAX_BUFFERED_EVENTS)
+        console.error(`[usePlaybackEventLog] Failed to send playback events (${again.length ? 'will retry once' : 'dropped'})`, error)
+      })
   }, [getSessionId])
 
   const queueEvent = useCallback(
@@ -84,7 +98,23 @@ export function usePlaybackEventLog({ getSessionId }: UsePlaybackEventLogOptions
   const resetEvents = useCallback(() => {
     stopFlushInterval()
     bufferRef.current = []
+    retriedRef.current.clear()
   }, [stopFlushInterval])
+
+  // Up to FLUSH_INTERVAL_MS of events sat in the buffer when the tab was
+  // closed or put in the background, and were lost. Send them as the page
+  // goes away; best effort, since the browser may not let the request finish.
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') flushEvents()
+    }
+    document.addEventListener('visibilitychange', onHide)
+    window.addEventListener('pagehide', flushEvents)
+    return () => {
+      document.removeEventListener('visibilitychange', onHide)
+      window.removeEventListener('pagehide', flushEvents)
+    }
+  }, [flushEvents])
 
   // Never leave a timer running behind an unmounted player
   useEffect(() => stopFlushInterval, [stopFlushInterval])
